@@ -1,3 +1,5 @@
+from Load_New import Load_New as New
+
 #prefined imports
 import sys,os
 import numpy as np
@@ -18,7 +20,9 @@ from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 
 class Viewer(QMainWindow):
-    loaded_spectrum=[]
+    loaded_spectrum={}
+    plotted_spectrum=[]
+    nonplot=[]
     def __init__(self):
         super().__init__()
         self.size_policy=QSizePolicy.Expanding
@@ -70,35 +74,83 @@ class Viewer(QMainWindow):
         
         self.close_.setWidget(self.close_spectrum)
         self.addDockWidget(Qt.RightDockWidgetArea,self.close_)
+        
         #add the plot window
         self.plot_window=QWidget()
         layout=QVBoxLayout()
-        static_canvas=FigureCanvas(Figure())
-        self.toolbar=NavigationToolbar(static_canvas,self)
+        self._canvas=FigureCanvas(Figure())
+        self.toolbar=NavigationToolbar(self._canvas,self)
         layout.addWidget(self.toolbar)
-        layout.addWidget(static_canvas)
+        layout.addWidget(self._canvas)
         
         self.plot_window.setLayout(layout)
-
         self.setCentralWidget(self.plot_window)
-        self._static_ax = static_canvas.figure.subplots()
-        t = np.linspace(0, 10, 501)
-        self._static_ax.plot(t, np.tan(t), ".")
-#        self._static_ax.tight_layout()
-        self._static_ax.set_ylabel('Value')
+        self.static_ax = self._canvas.figure.subplots()
+        self.static_ax.set_yscale('log')
+        self.static_ax.set_xlim(0,14)
+        self.static_ax.set_xlabel('Energy [MeV]')
+        self.static_ax.set_ylabel('Count Rate [cps]')
+#        t = np.linspace(0, 10, 501)
+#        self._static_ax.plot(t, np.tan(t), ".")
+##        self._static_ax.tight_layout()
+#        self._static_ax.set_ylabel('Value')
     
     def new_spectrum(self):
-        print('loading new')
+        self.vals=New()
+        self.vals.add.clicked.connect(self.new_getter)
         
+    def new_getter(self):
+        self.vals.add_spectrum()
+        counts=self.vals.counts
+        calibr=self.vals.calibration
+        legend=self.vals.legend.text()
+        self.loaded_spectrum[legend]=[calibr,counts]
+        self.loader.appendRow(QStandardItem(legend))
+        self.nonplot.append(legend)
+    
     def zoom_change(self):
         print('change_zoom')
         
     def update_add(self,index):
-        print('add a file')
-        
+        item=self.loader.itemFromIndex(index)
+        val=item.text()
+        self.unloader.appendRow(QStandardItem(item))
+        self.plotted_spectrum.append(item.text())
+#        #first clear all the values in the loaded section
+        for i in range(len(self.nonplot)):
+            self.loader.removeRow(i)
+        print(val)
+        self.nonplot.remove(val)
+        for i in self.nonplot:
+            self.loader.appendRow(QStandardItem(item.text()))
+        self.replot()
+
     def update_close(self,index):
-        print('remvoe a spectrum')
+        item=self.unloader.itemFromIndex(index)
+        val=item.text()
+        #clear all the items in the the unloading widget
+        for i in range(len(self.plotted_spectrum)):
+            self.unloader.removeRow(i)
+        #remove the value from the plotted spectrum and add it to the not plot
+        self.plotted_spectrum.remove(val)
+        self.nonplot.append(val)
+        self.loader.appendRow(QStandardItem(val))
+        #add the items still plotted back
+        for i in self.plotted_spectrum:
+            self.unloader.appendRow(QStandardItem(i))
+        self.replot()
         
+    def replot(self):
+        self.static_ax.clear()
+        self.static_ax.set_yscale('log')
+        self.static_ax.set_xlim(0,14)
+        self.static_ax.set_xlabel('Energy [MeV]')
+        self.static_ax.set_ylabel('Count Rate [cps]')
+        for i in self.plotted_spectrum:
+            spec=self.loaded_spectrum[i]
+            self.static_ax.plot(spec[0],spec[1],label=i)
+        self.static_ax.legend()
+        self._canvas.draw()
         
 if __name__=="__main__":
     app=QApplication(sys.argv)
