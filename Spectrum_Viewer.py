@@ -1,15 +1,13 @@
 from Load_New import Load_New as New
 
 #prefined imports
-import sys,os
-import numpy as np
-from pathlib import Path
+import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              QSizePolicy,QComboBox,QLineEdit,QTextEdit,
                              QMessageBox,QInputDialog,QMainWindow,QAction
                              ,QDockWidget,QTableWidgetItem,QVBoxLayout,
                              QTabWidget,QSystemTrayIcon,QListView,
-                             QAbstractItemView,QCompleter)
+                             QAbstractItemView,QCompleter,QLabel)
 from PyQt5.QtGui import (QFont,QIcon, QImage, QPalette, QBrush,
                         QStandardItemModel,QStandardItem)
 from PyQt5.QtCore import Qt,QModelIndex
@@ -23,6 +21,9 @@ class Viewer(QMainWindow):
     loaded_spectrum={}
     plotted_spectrum=[]
     nonplot=[]
+    e_plot=[]
+    mini=0
+    maxi=14
     def __init__(self):
         super().__init__()
         self.size_policy=QSizePolicy.Expanding
@@ -46,6 +47,12 @@ class Viewer(QMainWindow):
         self.change_zoom.setShortcut('Ctrl+Z')
         self.change_zoom.setToolTip('Change the initial zoom on the spectrum')
         self.menuFile.addActions([self.load_new,self.change_zoom])
+        
+        self.menuView=self.menuBar().addMenu('&View')
+        self.view_energies=QAction('&View Energies')
+        self.view_energies.setToolTip('Add Vertical Energy Lines')
+        self.view_energies.triggered.connect(self.vert_lines)
+        self.menuView.addActions([self.view_energies])
         
     def geometry(self):
         self.open_=QDockWidget('Loaded Spectrums')
@@ -90,10 +97,6 @@ class Viewer(QMainWindow):
         self.static_ax.set_xlim(0,14)
         self.static_ax.set_xlabel('Energy [MeV]')
         self.static_ax.set_ylabel('Count Rate [cps]')
-#        t = np.linspace(0, 10, 501)
-#        self._static_ax.plot(t, np.tan(t), ".")
-##        self._static_ax.tight_layout()
-#        self._static_ax.set_ylabel('Value')
     
     def new_spectrum(self):
         self.vals=New()
@@ -107,45 +110,123 @@ class Viewer(QMainWindow):
         self.loaded_spectrum[legend]=[calibr,counts]
         self.loader.appendRow(QStandardItem(legend))
         self.nonplot.append(legend)
+        
+    def vert_lines(self):
+        self.widget=QWidget()
+        self.widget.setWindowTitle('Add Energies')
+        current_lines=''
+        for i in range(len(self.e_plot)):
+            if i!=0:
+                current_lines+=',{}'.format(self.e_plot[i])
+            else:
+                current_lines+='{}'.format(self.e_plot[i])
+        self.line=QLineEdit(self)
+        self.line.setFont(self.font)
+        self.line.setSizePolicy(self.size_policy,self.size_policy)
+        self.line.setToolTip('Enter energies in MeV, seperated by commas')
+        self.line.setText(current_lines)
+        
+        self.line_label=QLabel('Energies:',self)
+        self.line_label.setFont(self.font)
+        self.line_label.setSizePolicy(self.size_policy,self.size_policy)
+        
+        self.add=QPushButton('Update')
+        self.add.setFont(self.font)
+        self.add.setSizePolicy(self.size_policy,self.size_policy)
+        self.add.clicked.connect(self.add_lines)
+        layout=QGridLayout()
+        layout.addWidget(self.line_label,0,0)
+        layout.addWidget(self.line,0,1)
+        layout.addWidget(self.add,1,0,1,2)
+        self.widget.setLayout(layout)
+        self.widget.show()
+        
+    def add_lines(self):
+        text=self.line.text().split(sep=',')
+        self.e_plot=[float(i) for i in text]
+        self.widget.close()
+        self.replot()
     
     def zoom_change(self):
-        print('change_zoom')
+        self.change_zoomed=QWidget()
+        
+        min_label=QLabel('Min:[MeV]',self)
+        min_label.setFont(self.font)
+        min_label.setSizePolicy(self.size_policy,self.size_policy)
+        max_label=QLabel('Max:[MeV]',self)
+        max_label.setFont(self.font)
+        max_label.setSizePolicy(self.size_policy,self.size_policy)
+        
+        self.min_=QLineEdit(self)
+        self.min_.setFont(self.font)
+        self.min_.setSizePolicy(self.size_policy,self.size_policy)
+        self.min_.setText(str(self.mini))
+        
+        self.max_=QLineEdit(self)
+        self.max_.setFont(self.font)
+        self.max_.setSizePolicy(self.size_policy,self.size_policy)
+        self.max_.setText(str(self.maxi))
+        
+        self.add_=QPushButton('Update')
+        self.add_.setFont(self.font)
+        self.add_.setSizePolicy(self.size_policy,self.size_policy)
+        self.add_.clicked.connect(self.zoomed_update)
+        
+        layout=QGridLayout()
+        layout.addWidget(min_label,0,0)
+        layout.addWidget(self.min_,0,1)
+        layout.addWidget(max_label,1,0)
+        layout.addWidget(self.max_,1,1)
+        layout.addWidget(self.add_,2,0,1,2)
+        self.change_zoomed.setLayout(layout)
+        self.change_zoomed.show()
+        
+    def zoomed_update(self):
+        self.mini=float(self.min_.text())
+        self.maxi=float(self.max_.text())
+        self.change_zoomed.close()
+        self.replot()
         
     def update_add(self,index):
         item=self.loader.itemFromIndex(index)
         val=item.text()
-        self.unloader.appendRow(QStandardItem(item))
+        print(self.nonplot)
+#        self.unloader.appendRow(QStandardItem(val))
         self.plotted_spectrum.append(item.text())
 #        #first clear all the values in the loaded section
         for i in range(len(self.nonplot)):
             self.loader.removeRow(i)
-        print(val)
-        self.nonplot.remove(val)
-        for i in self.nonplot:
-            self.loader.appendRow(QStandardItem(item.text()))
+#        self.nonplot.remove(val)
+#        for i in self.nonplot:
+#            self.loader.appendRow(QStandardItem(i))
         self.replot()
 
     def update_close(self,index):
         item=self.unloader.itemFromIndex(index)
         val=item.text()
+#        self.loader.appendRow(QStandardItem(val))
+        print(self.plotted_spectrum)
         #clear all the items in the the unloading widget
         for i in range(len(self.plotted_spectrum)):
             self.unloader.removeRow(i)
         #remove the value from the plotted spectrum and add it to the not plot
         self.plotted_spectrum.remove(val)
-        self.nonplot.append(val)
-        self.loader.appendRow(QStandardItem(val))
-        #add the items still plotted back
-        for i in self.plotted_spectrum:
-            self.unloader.appendRow(QStandardItem(i))
+#        self.nonplot.append(val)
+#        
+#        #add the items still plotted back
+#        for i in self.plotted_spectrum:
+#            self.unloader.appendRow(QStandardItem(i))
         self.replot()
         
     def replot(self):
         self.static_ax.clear()
         self.static_ax.set_yscale('log')
-        self.static_ax.set_xlim(0,14)
+        self.static_ax.set_xlim(self.mini,self.maxi)
         self.static_ax.set_xlabel('Energy [MeV]')
         self.static_ax.set_ylabel('Count Rate [cps]')
+        for i in self.e_plot:
+            self.static_ax.axvline(i,color='r',linestyle='--',linewidth=0.8)
+            
         for i in self.plotted_spectrum:
             spec=self.loaded_spectrum[i]
             self.static_ax.plot(spec[0],spec[1],label=i)
