@@ -90,7 +90,6 @@ class Load_New(QWidget):
     def count_browser(self):
         fileName=QFileDialog.getOpenFileName(self,'Counts File Location',
                                              "",'Text File (*.txt)')
-        
         if fileName:
             self.counts_=True
             if self.calibrate_:

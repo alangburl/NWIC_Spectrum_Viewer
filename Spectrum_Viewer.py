@@ -1,18 +1,15 @@
 from Load_New import Load_New as New
-
 #prefined imports
 import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
-                             QSizePolicy,QComboBox,QLineEdit,QTextEdit,
-                             QMessageBox,QInputDialog,QMainWindow,QAction
-                             ,QDockWidget,QTableWidgetItem,QVBoxLayout,
-                             QTabWidget,QSystemTrayIcon,QListView,
-                             QAbstractItemView,QCompleter,QLabel)
-from PyQt5.QtGui import (QFont,QIcon, QImage, QPalette, QBrush,
-                        QStandardItemModel,QStandardItem)
+                             QSizePolicy,QLineEdit,
+                             QMainWindow,QAction,QVBoxLayout
+                             ,QDockWidget,QListView,
+                             QAbstractItemView,QLabel,QFileDialog)
+from PyQt5.QtGui import (QFont,QStandardItemModel,QStandardItem)
 from PyQt5.QtCore import Qt,QModelIndex
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+#from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
@@ -20,10 +17,11 @@ from matplotlib.backends.backend_qt5agg import (
 class Viewer(QMainWindow):
     loaded_spectrum={}
     plotted_spectrum=[]
-    nonplot=[]
     e_plot=[]
     mini=0
     maxi=14
+    plotted_tracking=[]
+    not_plotted_tracking=[]
     def __init__(self):
         super().__init__()
         self.size_policy=QSizePolicy.Expanding
@@ -42,17 +40,21 @@ class Viewer(QMainWindow):
         self.load_new.setShortcut('Ctrl+O')
         self.load_new.setToolTip('Load a new calibrated spectrum')
         
+        self.save_figure=QAction('&Save Spectrum')
+        self.save_figure.triggered.connect(self.save_fig)
+        self.save_figure.setShortcut('Ctrl+S')
+        self.menuFile.addActions([self.load_new,self.save_figure])
+        
         self.change_zoom=QAction('&Change Zoom Location')
         self.change_zoom.triggered.connect(self.zoom_change)
         self.change_zoom.setShortcut('Ctrl+Z')
         self.change_zoom.setToolTip('Change the initial zoom on the spectrum')
-        self.menuFile.addActions([self.load_new,self.change_zoom])
         
         self.menuView=self.menuBar().addMenu('&View')
         self.view_energies=QAction('&View Energies')
         self.view_energies.setToolTip('Add Vertical Energy Lines')
         self.view_energies.triggered.connect(self.vert_lines)
-        self.menuView.addActions([self.view_energies])
+        self.menuView.addActions([self.view_energies,self.change_zoom])
         
     def geometry(self):
         self.open_=QDockWidget('Loaded Spectrums')
@@ -85,7 +87,8 @@ class Viewer(QMainWindow):
         #add the plot window
         self.plot_window=QWidget()
         layout=QVBoxLayout()
-        self._canvas=FigureCanvas(Figure())
+        self.figure=Figure()
+        self._canvas=FigureCanvas(self.figure)
         self.toolbar=NavigationToolbar(self._canvas,self)
         layout.addWidget(self.toolbar)
         layout.addWidget(self._canvas)
@@ -107,9 +110,10 @@ class Viewer(QMainWindow):
         counts=self.vals.counts
         calibr=self.vals.calibration
         legend=self.vals.legend.text()
-        self.loaded_spectrum[legend]=[calibr,counts]
+        accum_time=self.vals.run_time.text()
+        self.loaded_spectrum[legend]=[calibr,counts,accum_time]
         self.loader.appendRow(QStandardItem(legend))
-        self.nonplot.append(legend)
+        self.not_plotted_tracking.append(legend)
         
     def vert_lines(self):
         self.widget=QWidget()
@@ -143,7 +147,10 @@ class Viewer(QMainWindow):
         
     def add_lines(self):
         text=self.line.text().split(sep=',')
-        self.e_plot=[float(i) for i in text]
+        try:
+            self.e_plot=[float(i) for i in text]
+        except:
+            self.e_plot=[]
         self.widget.close()
         self.replot()
     
@@ -190,32 +197,33 @@ class Viewer(QMainWindow):
     def update_add(self,index):
         item=self.loader.itemFromIndex(index)
         val=item.text()
-        print(self.nonplot)
-#        self.unloader.appendRow(QStandardItem(val))
-        self.plotted_spectrum.append(item.text())
-#        #first clear all the values in the loaded section
-        for i in range(len(self.nonplot)):
-            self.loader.removeRow(i)
-#        self.nonplot.remove(val)
-#        for i in self.nonplot:
-#            self.loader.appendRow(QStandardItem(i))
+        self.plotted_spectrum.append(val)
+        #add the item selected to the plotted side
+        self.plotted_tracking.append(val)
+        self.unloader.appendRow(QStandardItem(val))
+        #remove all the values from the add plot 
+        self.loader.removeRows(0,self.loader.rowCount())
+        #remove the values clicked from the not plotted list
+        self.not_plotted_tracking.remove(val)
+        #add the remaining items back to the options
+        for i in self.not_plotted_tracking:
+            self.loader.appendRow(QStandardItem(i))
         self.replot()
 
     def update_close(self,index):
         item=self.unloader.itemFromIndex(index)
         val=item.text()
-#        self.loader.appendRow(QStandardItem(val))
-        print(self.plotted_spectrum)
-        #clear all the items in the the unloading widget
-        for i in range(len(self.plotted_spectrum)):
-            self.unloader.removeRow(i)
-        #remove the value from the plotted spectrum and add it to the not plot
         self.plotted_spectrum.remove(val)
-#        self.nonplot.append(val)
-#        
-#        #add the items still plotted back
-#        for i in self.plotted_spectrum:
-#            self.unloader.appendRow(QStandardItem(i))
+        #add the value to the not plotted side
+        self.not_plotted_tracking.append(val)
+        self.loader.appendRow(QStandardItem(val))
+        #remove all the values from the unloading side
+        self.unloader.removeRows(0,self.unloader.rowCount())
+        #remove the value from the tracking list
+        self.plotted_tracking.remove(val)
+        #put the items back into the unloader
+        for i in self.plotted_tracking:
+            self.unloader.appendRow(QStandardItem(i))
         self.replot()
         
     def replot(self):
@@ -229,10 +237,18 @@ class Viewer(QMainWindow):
             
         for i in self.plotted_spectrum:
             spec=self.loaded_spectrum[i]
-            self.static_ax.plot(spec[0],spec[1],label=i)
+            self.static_ax.plot(spec[0],spec[1],
+                                label='{}, Accum Time: {}s'.format(i,spec[2]))
         self.static_ax.legend()
         self._canvas.draw()
         
+    def save_fig(self):
+        options='Portable Network Graphics (*.png);;Joint Photographic Experts Group(*.jpg)'
+        file_name=QFileDialog.getSaveFileName(self,'Spectrum Image Save',"",options)
+        
+        if file_name:
+            self.figure.savefig(file_name[0],dpi=600)
+            
 if __name__=="__main__":
     app=QApplication(sys.argv)
     ex=Viewer()
