@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
 from PyQt5.QtGui import (QFont,QStandardItemModel,QStandardItem)
 from PyQt5.QtCore import Qt,QModelIndex
 
-#from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
@@ -27,10 +26,11 @@ class Viewer(QMainWindow):
         self.size_policy=QSizePolicy.Expanding
         self.font=QFont()
         self.font.setPointSize(12)
-#        self.showMaximized()
+
         self.setWindowTitle('Calibrated Spectrum Viewer')
         self.menu()
         self.geometry()
+        self.showMaximized()
         self.show()
         
     def menu(self):
@@ -79,7 +79,8 @@ class Viewer(QMainWindow):
         
         self.unloader=QStandardItemModel()
         self.close_spectrum.setModel(self.unloader)
-        self.close_spectrum.doubleClicked[QModelIndex].connect(self.update_close)
+        self.close_spectrum.doubleClicked[QModelIndex].connect(
+                self.update_close)
         
         self.close_.setWidget(self.close_spectrum)
         self.addDockWidget(Qt.RightDockWidgetArea,self.close_)
@@ -243,8 +244,11 @@ class Viewer(QMainWindow):
         self._canvas.draw()
         
     def save_fig(self):
-        options='Portable Network Graphics (*.png);;Joint Photographic Experts Group(*.jpg)'
-        file_name=QFileDialog.getSaveFileName(self,'Spectrum Image Save',"",options)
+        options='Portable Network Graphics (*.png);;'
+        options_='Joint Photographic Experts Group(*.jpg)'
+        options=options+options_
+        file_name=QFileDialog.getSaveFileName(self,'Spectrum Image Save',""
+                                              ,options)
         
         if file_name:
             self.figure.savefig(file_name[0],dpi=600)

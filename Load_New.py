@@ -1,17 +1,11 @@
 '''Interface for loading a new spectrum name
 '''
 
-import sys,os
-import numpy as np
-from pathlib import Path
+import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
-                             QSizePolicy,QComboBox,QLineEdit,QTextEdit,
-                             QMessageBox,QInputDialog,QMainWindow,QAction
-                             ,QDockWidget,QTableWidgetItem,QVBoxLayout,
-                             QTabWidget,QSystemTrayIcon,QListView,
-                             QAbstractItemView,QCompleter,QFileDialog,QLabel)
-from PyQt5.QtGui import (QFont,QIcon, QImage, QPalette, QBrush,
-                        QStandardItemModel,QStandardItem)
+                             QSizePolicy,QLineEdit,
+                             QMessageBox,QFileDialog,QLabel)
+from PyQt5.QtGui import (QFont)
 
 class Load_New(QWidget):
     counts_=False
