@@ -1,4 +1,6 @@
+
 from Load_New import Load_New as New
+from Calibration_Window import Calibration_Window as Window
 #prefined imports
 import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
@@ -44,6 +46,13 @@ class Viewer(QMainWindow):
         self.save_figure.triggered.connect(self.save_fig)
         self.save_figure.setShortcut('Ctrl+S')
         self.menuFile.addActions([self.load_new,self.save_figure])
+        
+        self.menuEdit=self.menuBar().addMenu('&Edit')
+        self.calibrate_spectrum=QAction('&Calibrate Spectrum')
+        self.calibrate_spectrum.triggered.connect(self.spectrum_calibrate)
+        self.calibrate_spectrum.setShortcut('Ctrl+G')
+        self.calibrate_spectrum.setToolTip('Calibrate a raw spectrum')
+        self.menuEdit.addActions([self.calibrate_spectrum])
         
         self.change_zoom=QAction('&Change Zoom Location')
         self.change_zoom.triggered.connect(self.zoom_change)
@@ -252,6 +261,11 @@ class Viewer(QMainWindow):
         
         if file_name:
             self.figure.savefig(file_name[0],dpi=600)
+    
+    def spectrum_calibrate(self):
+        '''Launch a calibration window
+        '''
+        self.calibrator=Window()
             
 if __name__=="__main__":
     app=QApplication(sys.argv)

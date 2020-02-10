@@ -182,6 +182,7 @@ class Calibration_Window(QMainWindow):
         plt.ylabel('Counts')
         plt.title('Energy Calibrated Spectrum')
         plt.yscale('log')
+        plt.xlim(0,14)
         plt.show()
         self.save.setEnabled(True)
         
