@@ -26,6 +26,13 @@ class Detector_Calibration():
         else:
 #            print(m,b)
             return m,b
+        
+    def external_calibration(self,m,b):
+        '''Takes a slope and intercept to calibrate the 
+        channels and returns a list of energies
+        '''
+        return [m*i+b for i in self.channels]
+    
     def deviation_pairs(self,cal_channels,cal_energies):
         '''Use the deviation pairs to look at the linear deviations
         '''
@@ -60,7 +67,7 @@ class Detector_Calibration():
             if l>cal_energies[-1]:
                 output.append(l-(c_m*l+c_b))
 #        print(len(output))       
-        return output,dev
+        return output
             
     def segmented_linear_least_squares(self,cal_channels,cal_energies):
         '''Do a linear fit between each of the cal_channels and 

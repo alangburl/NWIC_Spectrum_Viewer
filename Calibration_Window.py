@@ -169,22 +169,39 @@ class Calibration_Window(QMainWindow):
         channels=[float(i) for i in channels]
         energies=[float(j) for j in energies]
         
-        #can be changed at a later point to direct linear or deviation 
-        #pairs dependent on the best method determined
-        self.cal_values=cali(self.channels).segmented_linear_least_squares(
-                channels,energies)
-        
-        plt.figure(1,figsize=(5,5))
-        plt.plot(self.channels,self.cal_values)
-        plt.figure(2,figsize=(5,5))
-        plt.plot(self.cal_values,self.counts)
-        plt.xlabel('Energy [MeV]')
-        plt.ylabel('Counts')
-        plt.title('Energy Calibrated Spectrum')
-        plt.yscale('log')
-        plt.xlim(0,14)
-        plt.show()
-        self.save.setEnabled(True)
+        #get the calibration method desired
+        items=('Linear','Deviation Pairs','External Calibration','Segemented Linear')
+        item,ok=QInputDialog.getItem(self,'Calibration Type','Calibration:',items,0,False)
+        if ok and item:
+            if item==items[0]:
+                self.cal_values=cali(self.channels).linear_least_squares_fit(
+                        channels,energies)
+            elif item==items[1]:
+                self.cal_values=cali(self.channels).deviation_pairs(
+                        channels,energies)
+            elif item==items[2]:
+                text,ok=QInputDialog.getText(self,'Slope and Intercept',
+                                             'Slope [MeV/Ch],Intercept[MeV]:',
+                                             QLineEdit.Normal,"")
+                if ok and len(text.split(sep=','))==2:
+                    vals=text.split(sep=',')
+                    self.cal_values=cali(self.channels).external_calibration(
+                            float(vals[0]),float(vals[1]))
+            elif item==items[3]:
+                self.cal_values=cali(self.channels).segmented_linear_least_squares(
+                        channels,energies)
+
+            plt.figure(1,figsize=(5,5))
+            plt.plot(self.channels,self.cal_values)
+            plt.figure(2,figsize=(5,5))
+            plt.plot(self.cal_values,self.counts)
+            plt.xlabel('Energy [MeV]')
+            plt.ylabel('Counts')
+            plt.title('Energy Calibrated Spectrum')
+            plt.yscale('log')
+            plt.xlim(0,14)
+            plt.show()
+            self.save.setEnabled(True)
         
     def save_(self):
         name=QFileDialog.getSaveFileName(self,'Calibration Data','',
