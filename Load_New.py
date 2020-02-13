@@ -1,6 +1,6 @@
 '''Interface for loading a new spectrum name
 '''
-
+import numpy as np
 import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              QSizePolicy,QLineEdit,
@@ -117,8 +117,9 @@ class Load_New(QWidget):
             scale=float(self.run_time.text())
         except:
             scale=1.0
+        self.count_rate=np.sum(self.counts)/scale
         self.counts=[i/scale for i in self.counts]
-        
+    
         g=open(calibration,'r')
         g_data=g.readlines()
         g.close()

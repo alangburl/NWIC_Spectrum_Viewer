@@ -7,18 +7,20 @@ from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              QSizePolicy,QLineEdit,
                              QMainWindow,QAction,QVBoxLayout
                              ,QDockWidget,QListView,
-                             QAbstractItemView,QLabel,QFileDialog)
+                             QAbstractItemView,QLabel,QFileDialog,QTextEdit)
 from PyQt5.QtGui import (QFont,QStandardItemModel,QStandardItem)
 from PyQt5.QtCore import Qt,QModelIndex
-
+import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 
 class Viewer(QMainWindow):
     loaded_spectrum={}
+    count_rates={}
     plotted_spectrum=[]
     e_plot=[]
+    e_calibration=[]
     mini=0
     maxi=14
     plotted_tracking=[]
@@ -28,7 +30,6 @@ class Viewer(QMainWindow):
         self.size_policy=QSizePolicy.Expanding
         self.font=QFont()
         self.font.setPointSize(12)
-
         self.setWindowTitle('Calibrated Spectrum Viewer')
         self.menu()
         self.geometry()
@@ -63,7 +64,13 @@ class Viewer(QMainWindow):
         self.view_energies=QAction('&View Energies')
         self.view_energies.setToolTip('Add Vertical Energy Lines')
         self.view_energies.triggered.connect(self.vert_lines)
-        self.menuView.addActions([self.view_energies,self.change_zoom])
+        self.view_calibration_energies=QAction('&Calibration Energies')
+        self.view_calibration_energies.triggered.connect(self.calib_lines)
+        self.view_countrate=QAction('&Count Rates')
+        self.view_countrate.triggered.connect(self.rate_tracking)
+        self.menuView.addActions([self.view_energies,self.change_zoom,
+                                  self.view_calibration_energies,
+                                  self.view_countrate])
         
     def geometry(self):
         self.open_=QDockWidget('Loaded Spectrums')
@@ -102,7 +109,6 @@ class Viewer(QMainWindow):
         self.toolbar=NavigationToolbar(self._canvas,self)
         layout.addWidget(self.toolbar)
         layout.addWidget(self._canvas)
-        
         self.plot_window.setLayout(layout)
         self.setCentralWidget(self.plot_window)
         self.static_ax = self._canvas.figure.subplots()
@@ -121,6 +127,7 @@ class Viewer(QMainWindow):
         calibr=self.vals.calibration
         legend=self.vals.legend.text()
         accum_time=self.vals.run_time.text()
+        self.count_rates[legend]=self.vals.count_rate
         self.loaded_spectrum[legend]=[calibr,counts,accum_time]
         self.loader.appendRow(QStandardItem(legend))
         self.not_plotted_tracking.append(legend)
@@ -155,6 +162,36 @@ class Viewer(QMainWindow):
         self.widget.setLayout(layout)
         self.widget.show()
         
+    def calib_lines(self):
+        self.widget1=QWidget()
+        self.widget1.setWindowTitle('Add Energies')
+        current_lines=''
+        for i in range(len(self.e_calibration)):
+            if i!=0:
+                current_lines+=',{}'.format(self.e_calibration[i])
+            else:
+                current_lines+='{}'.format(self.e_calibration[i])
+        self.line1=QLineEdit(self)
+        self.line1.setFont(self.font)
+        self.line1.setSizePolicy(self.size_policy,self.size_policy)
+        self.line1.setToolTip('Enter energies in MeV used for calibration, seperated by commas')
+        self.line1.setText(current_lines)
+        
+        self.line_label1=QLabel('Energies:',self)
+        self.line_label1.setFont(self.font)
+        self.line_label1.setSizePolicy(self.size_policy,self.size_policy)
+        
+        self.add1=QPushButton('Update')
+        self.add1.setFont(self.font)
+        self.add1.setSizePolicy(self.size_policy,self.size_policy)
+        self.add1.clicked.connect(self.add_cal_lines)
+        layout=QGridLayout()
+        layout.addWidget(self.line_label1,0,0)
+        layout.addWidget(self.line1,0,1)
+        layout.addWidget(self.add1,1,0,1,2)
+        self.widget1.setLayout(layout)
+        self.widget1.show()
+        
     def add_lines(self):
         text=self.line.text().split(sep=',')
         try:
@@ -163,6 +200,15 @@ class Viewer(QMainWindow):
             self.e_plot=[]
         self.widget.close()
         self.replot()
+        
+    def add_cal_lines(self):
+        text=self.line1.text().split(sep=',')
+        try:
+            self.e_calibration=[float(i) for i in text]
+        except:
+            self.e_calibration=[]
+        self.widget1.close()
+        self.replot()        
     
     def zoom_change(self):
         self.change_zoomed=QWidget()
@@ -238,17 +284,26 @@ class Viewer(QMainWindow):
         
     def replot(self):
         self.static_ax.clear()
+        self.mouse_tracking()
         self.static_ax.set_yscale('log')
         self.static_ax.set_xlim(self.mini,self.maxi)
         self.static_ax.set_xlabel('Energy [MeV]')
         self.static_ax.set_ylabel('Count Rate [cps]')
+        current=list(self.static_ax.get_xticks())
         for i in self.e_plot:
+            current.append(i)
             self.static_ax.axvline(i,color='r',linestyle='--',linewidth=0.8)
+        for i in self.e_calibration:
+            current.append(i)
+            self.static_ax.axvline(i,color='k',linestyle='-',linewidth=1)
             
         for i in self.plotted_spectrum:
             spec=self.loaded_spectrum[i]
             self.static_ax.plot(spec[0],spec[1],
                                 label='{}, Accum Time: {}s'.format(i,spec[2]))
+        current=[round(float(k),2) for k in current]
+        self.static_ax.set_xticks(current)
+        self.static_ax.set_xticklabels(current, rotation=90)
         self.static_ax.legend()
         self._canvas.draw()
         
@@ -260,13 +315,40 @@ class Viewer(QMainWindow):
                                               ,options)
         
         if file_name:
-            self.figure.savefig(file_name[0],dpi=600)
+            self.figure.savefig(file_name[0],dpi=600,figsize=(10,6))
     
     def spectrum_calibrate(self):
         '''Launch a calibration window
         '''
         self.calibrator=Window()
-            
+        
+    def rate_tracking(self):
+        '''Show the count rate for all the loaded spectrum
+        '''
+        self.rater=QWidget()
+        self.rater.setWindowTitle('Count Rates')
+        editor=QTextEdit()
+        editor.setFont(self.font)
+        editor.setReadOnly(True)
+        editor.setSizePolicy(self.size_policy, self.size_policy)
+        
+        for i in list(self.count_rates.keys()):
+            editor.append('{}: {:,.2f}cps'.format(i,self.count_rates[i]))
+        layout=QVBoxLayout()
+        layout.addWidget(editor)
+        self.rater.setLayout(layout)
+        self.rater.show()
+        
+    def mouse_tracking(self):
+        self.txt=self.static_ax.text(0.8,0.9,"",transform=self.static_ax.transAxes)
+        self.figure.canvas.mpl_connect('motion_notify_event',self.mouse_move)
+        
+    def mouse_move(self,event):
+        if not event.inaxes:
+            return
+        self.txt.set_text('Energy: {:,.2f} MeV'.format(event.xdata))
+        self._canvas.draw()
+        
 if __name__=="__main__":
     app=QApplication(sys.argv)
     ex=Viewer()
