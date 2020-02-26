@@ -68,9 +68,11 @@ class Viewer(QMainWindow):
         self.view_calibration_energies.triggered.connect(self.calib_lines)
         self.view_countrate=QAction('&Count Rates')
         self.view_countrate.triggered.connect(self.rate_tracking)
+        self.roi_action=QAction('&ROI Counts')
+        self.roi_action.triggered.connect(self.roi_display)
         self.menuView.addActions([self.view_energies,self.change_zoom,
                                   self.view_calibration_energies,
-                                  self.view_countrate])
+                                  self.view_countrate,self.roi_action])
         
     def geometry(self):
         self.open_=QDockWidget('Loaded Spectrums')
@@ -348,6 +350,78 @@ class Viewer(QMainWindow):
             return
         self.txt.set_text('Energy: {:,.2f} MeV'.format(event.xdata))
         self._canvas.draw()
+        
+    def roi_display(self):
+        '''Determine the number of counts 
+        in a specified ROI and display them
+        '''
+        self.change_roi=QWidget()
+        
+        min_label=QLabel('Min:[MeV]',self)
+        min_label.setFont(self.font)
+        min_label.setSizePolicy(self.size_policy,self.size_policy)
+        max_label=QLabel('Max:[MeV]',self)
+        max_label.setFont(self.font)
+        max_label.setSizePolicy(self.size_policy,self.size_policy)
+        
+        self.min_roi=QLineEdit(self)
+        self.min_roi.setFont(self.font)
+        self.min_roi.setSizePolicy(self.size_policy,self.size_policy)
+        
+        self.max_roi=QLineEdit(self)
+        self.max_roi.setFont(self.font)
+        self.max_roi.setSizePolicy(self.size_policy,self.size_policy)
+        
+        self.add_roi=QPushButton('Update')
+        self.add_roi.setFont(self.font)
+        self.add_roi.setSizePolicy(self.size_policy,self.size_policy)
+        self.add_roi.clicked.connect(self.roi_update)
+        
+        layout=QGridLayout()
+        layout.addWidget(min_label,0,0)
+        layout.addWidget(self.min_roi,0,1)
+        layout.addWidget(max_label,1,0)
+        layout.addWidget(self.max_roi,1,1)
+        layout.addWidget(self.add_roi,2,0,1,2)
+        self.change_roi.setLayout(layout)
+        self.change_roi.show()
+        
+    def roi_update(self):
+        self.change_roi.close()
+        roi_counts={}
+        for i in self.plotted_spectrum:
+            calibration=self.loaded_spectrum[i]
+            ma=0
+            mi=len(calibration[0])
+            for j in range(len(calibration[0])):
+                if calibration[0][j] <= float(self.max_roi.text()):
+                    ma=j
+                if calibration[0][j] <=float(self.min_roi.text()):
+#                    print(calibration[0][j])
+                    mi=j
+#            print(mi,ma)
+            roi_counts[i]=self.loaded_spectrum[i][1][mi:ma]
+            
+#        scale the rois by the accumulation time and determine the sum of the 
+#        area using np
+        roi={}
+        for i in list(roi_counts.keys()):
+            timer=float(self.loaded_spectrum[i][2])
+            scale=0
+            for j in range(len(roi_counts[i])):
+                scale+=roi_counts[i][j]*timer
+            roi[i]=scale
+        self.display_roi=QWidget()
+        self.display_roi.setWindowTitle('ROI counts')
+        rois=QTextEdit()
+        rois.setFont(self.font)
+        rois.setSizePolicy(self.size_policy,self.size_policy)
+        for i in list(roi.keys()):
+            rois.append('{}: {} counts'.format(i,roi[i]))
+        layout=QVBoxLayout()
+        layout.addWidget(rois)
+        self.display_roi.setLayout(layout)
+        self.display_roi.show()
         
 if __name__=="__main__":
     app=QApplication(sys.argv)
