@@ -47,31 +47,6 @@ class Detector_Calibration():
         segs=self.segmented_linear_least_squares(cal_channels,cal_energies)
         self.dev=[line[i]-segs[i] for i in range(len(line))]
         return segs
-##        print(len(line))
-#        dev=[]
-#        for k in range(len(cal_channels)):
-#            dev.append(line[cal_channels[k]]-cal_energies[k])
-#            print(cal_energies[k])
-#            print(lin[cal_channels[k]])
-#            
-#        output=[]
-#        for i in line:
-#            if i<=cal_energies[0]:
-#                output.append(i)
-##        print(len(output))
-#        for j in range(len(dev)-1):
-#            c_m,c_b=self.linear_least_squares_fit([cal_channels[j],
-#                                                   cal_channels[j+1]],
-#                                                   [dev[j],dev[j+1]],True)
-#            for k in line:
-#                if k>cal_energies[j] and k<=cal_energies[j+1]:
-#                    output.append(k-(c_m*k+c_b))
-##        print(len(output))
-#        for l in line:
-#            if l>cal_energies[-1]:
-#                output.append(l-(c_m*l+c_b))
-#        print(len(output))       
-#        return output
             
     def segmented_linear_least_squares(self,cal_channels,cal_energies):
         '''Do a linear fit between each of the cal_channels and 

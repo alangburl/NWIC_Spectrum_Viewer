@@ -83,7 +83,8 @@ class Load_New(QWidget):
         self.show()
     def count_browser(self):
         fileName=QFileDialog.getOpenFileName(self,'Counts File Location',
-                                             "",'Text File (*.txt)')
+                                             "",
+                         'Text File (*.txt);;Comma Seperated File (*.csv)')
         if fileName:
             self.counts_=True
             if self.calibrate_:
@@ -93,7 +94,8 @@ class Load_New(QWidget):
     def calibration_browse(self):
         
         fileName=QFileDialog.getOpenFileName(self,'Calibration File Location',
-                                             "",'Text File (*.txt)')
+                                             "",
+                         'Text File (*.txt);;Comma Seperated File (*.csv)')
         
         if fileName:
             self.calibrate_=True
@@ -117,6 +119,7 @@ class Load_New(QWidget):
             scale=float(self.run_time.text())
         except:
             scale=1.0
+        self.accum_time=scale
         self.count_rate=np.sum(self.counts)/scale
         self.counts=[i/scale for i in self.counts]
     
@@ -125,8 +128,9 @@ class Load_New(QWidget):
         g.close()
         self.calibration=[float(i.split(sep=',')[0].split(sep='\n')[0]) \
                          for i in g_data]
-        
         if len(self.calibration)!=len(self.counts):
+            print(len(self.calibration))
+            print(len(self.counts))
             reply=QMessageBox.information(self,'Length Error',
                           'Calibration and Count\nfile have different lengths',
                           QMessageBox.Ok)

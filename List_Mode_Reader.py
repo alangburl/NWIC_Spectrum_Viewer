@@ -30,6 +30,7 @@ class List_Mode():
             vals=data[i].split(sep=';')
             timing.append(float(vals[0])*1e-6)
             channel.append(float(vals[1]))
+        del data
         print('Loaded in {:.2f} s'.format(time.time()-s))
         return timing,channel
     
@@ -37,11 +38,11 @@ class List_Mode():
         #get the sync pulse information
         s_time,s_channels=self.read_file(self.file_location)
         #create two dictionaries: 1 for region one  and the other for region 2
-        region1_spectrum={}
-        region2_spectrum={}
+        self.region1_spectrum={}
+        self.region2_spectrum={}
         for i in range(self.num_channels):
-            region1_spectrum[i]=0
-            region2_spectrum[i]=0
+            self.region1_spectrum[i]=0
+            self.region2_spectrum[i]=0
         #two different lists one to go from the sync pulse to the 
         #region divider time and the other from the region divider time
         #to the next sync pulse
@@ -52,7 +53,6 @@ class List_Mode():
         region_2_counts=[0]*len(region_2_timing_splits)
         #get the spectral data 
         d_time,d_channels=self.read_file(self.location)
-        
         #loop through the sync pulse times
         d_loc=0
         s=time.time()
@@ -64,7 +64,7 @@ class List_Mode():
                     and d_time[d_loc]>=region_1_timing_splits[j]+s_time[i]:
                         region_1_counts[j]+=1
                         break
-                region1_spectrum[d_channels[d_loc]]+=1
+                self.region1_spectrum[d_channels[d_loc]]+=1
                 d_loc+=1
                 
             while d_time[d_loc]<s_time[i+1]:
@@ -73,16 +73,31 @@ class List_Mode():
                     and d_time[d_loc]>=region_2_timing_splits[j]+s_time[i]:
                         region_2_counts[j]+=1
                         break
-                region2_spectrum[d_channels[d_loc]]+=1
+                self.region2_spectrum[d_channels[d_loc]]+=1
                 d_loc+=1
         print('Process time {:.2f}'.format(time.time()-s))
-        return [region2_spectrum,region_2_counts,region1_spectrum,
+        self.save_spectrum()
+        del s_time
+        del s_channels
+        del d_time
+        del d_channels
+        return [self.region2_spectrum,region_2_counts,self.region1_spectrum,
                 region_1_counts,region_1_timing_splits,region_2_timing_splits]
              
+    def save_spectrum(self):
+        '''save the spectrum in region one and two
+        '''
+        f=open('region1_.csv','w')
+        h=open('region2_.csv','w')
+        for i in range(len(list(self.region1_spectrum.values()))-1):
+            f.write('{}\n'.format(self.region1_spectrum[i]))
+            h.write('{}\n'.format(self.region2_spectrum[i])) 
+        f.close()
+        h.close()
 if __name__=="__main__":
         loc=os.path.join(os.getcwd(),'Test_Data')
-        file=os.path.join(loc,'s1.csv')
-        file1=os.path.join(loc,'spec1.csv')
+        file=os.path.join(loc,'1_90505.csv')
+        file1=os.path.join(loc,'3_90505.csv')
         a=List_Mode(70,file1,file)
         spec2,coun2,spec1,coun1,t1,t2=a.timing()
         plt.figure(1)
@@ -100,16 +115,4 @@ if __name__=="__main__":
         plt.xlabel('Channels')
         plt.title('Region 1 Spectrum')
         plt.savefig('Region1.png',dpi=600,figsize=(6,6))
-        plt.show()
-        plt.figure(3)
-        plt.plot(t1[0:-1],coun1[0:-1])
-        plt.xlabel('Time [us]')
-        plt.ylabel('Counts')
-        plt.savefig('Region_1_Counts.png',dpi=600,figsize=(6,6))
-        plt.show()
-        plt.figure(4)
-        plt.plot(t2[1::],coun2[1::])
-        plt.xlabel('Time [us]')
-        plt.ylabel('Counts')
-        plt.savefig('Region_2_Counts.png',dpi=600,figsize=(6,6))  
         plt.show()

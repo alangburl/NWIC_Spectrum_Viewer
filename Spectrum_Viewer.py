@@ -1,13 +1,15 @@
 
 from Load_New import Load_New as New
 from Calibration_Window import Calibration_Window as Window
+from Save_Spe import Save_Spe
 #prefined imports
 import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              QSizePolicy,QLineEdit,
                              QMainWindow,QAction,QVBoxLayout
                              ,QDockWidget,QListView,
-                             QAbstractItemView,QLabel,QFileDialog,QTextEdit)
+                             QAbstractItemView,QLabel,QFileDialog,QTextEdit,
+                             QInputDialog)
 from PyQt5.QtGui import (QFont,QStandardItemModel,QStandardItem)
 from PyQt5.QtCore import Qt,QModelIndex
 import numpy as np
@@ -43,10 +45,14 @@ class Viewer(QMainWindow):
         self.load_new.setShortcut('Ctrl+O')
         self.load_new.setToolTip('Load a new calibrated spectrum')
         
-        self.save_figure=QAction('&Save Spectrum')
+        self.save_figure=QAction('&Save Spectrum Image')
         self.save_figure.triggered.connect(self.save_fig)
-        self.save_figure.setShortcut('Ctrl+S')
-        self.menuFile.addActions([self.load_new,self.save_figure])
+        self.save_figure.setShortcut('Ctrl+Shift+S')
+        self.save_spec=QAction('&Save Spe File')
+        self.save_spec.triggered.connect(self.spe)
+        self.save_spec.setShortcut('Ctrl+S')
+        self.menuFile.addActions([self.load_new,self.save_figure,
+                                  self.save_spec])
         
         self.menuEdit=self.menuBar().addMenu('&Edit')
         self.calibrate_spectrum=QAction('&Calibrate Spectrum')
@@ -128,7 +134,7 @@ class Viewer(QMainWindow):
         counts=self.vals.counts
         calibr=self.vals.calibration
         legend=self.vals.legend.text()
-        accum_time=self.vals.run_time.text()
+        accum_time=self.vals.accum_time
         self.count_rates[legend]=self.vals.count_rate
         self.loaded_spectrum[legend]=[calibr,counts,accum_time]
         self.loader.appendRow(QStandardItem(legend))
@@ -422,6 +428,17 @@ class Viewer(QMainWindow):
         layout.addWidget(rois)
         self.display_roi.setLayout(layout)
         self.display_roi.show()
+        
+    def spe(self):
+        '''Save the selected file out to an spe file format, even though the
+        calibration will likely not be correct
+        '''
+        items=self.loaded_spectrum.keys()
+        text,ok=QInputDialog.getItem(self,'Save Spectrum','Saving:',items,0,False)
+        if ok and text:
+            name=QFileDialog.getSaveFileName(self,'Spe File Name','','IAEA (*.spe)')
+            if name!="":
+                Save_Spe(self.loaded_spectrum[text],text,name)
         
 if __name__=="__main__":
     app=QApplication(sys.argv)
