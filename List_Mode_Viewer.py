@@ -36,13 +36,16 @@ class List_Mode_Viewer(QMainWindow):
         self.load_new=QAction('&Load New Data')
         self.load_new.triggered.connect(self.loading)
         self.load_new.setShortcut('CTRL+N')
+        self.save_file=QAction('&Save Spectrum')
+        self.save_file.triggered.connect(self.save_spectrum)
+        self.save_file.setEnabled(False)
         
         self.menuView=self.menuBar().addMenu('&View')
         self.view_pop=QAction('&Show Tools')
         self.view_pop.triggered.connect(self.popup)
         self.view_pop.setShortcut('CTRL+U')
         self.menuView.addActions([self.view_pop])
-        self.menuFile.addActions([self.load_new])
+        self.menuFile.addActions([self.load_new,self.save_file])
     def geometry(self):
         self.central_widget=QWidget()
         self.region1_plot=QWidget()
@@ -167,6 +170,7 @@ class List_Mode_Viewer(QMainWindow):
             self.loader.close()
         except:
             True
+        self.save_file.setEnabled(True)
         self.list_mode_processor=List_Mode()
         self.sync_time,sync_channel=self.list_mode_processor.read_file(
                 self.sync_filename[0])
@@ -244,6 +248,7 @@ class List_Mode_Viewer(QMainWindow):
         self.duty_changed()
         self.offset_changed()
         self.popup.show()
+        
     def duty_changed(self):
         self.duty_indicator.setText(str(self.duty_cycle.value()))
         
@@ -302,6 +307,25 @@ class List_Mode_Viewer(QMainWindow):
         self.region1_canvas.draw()
         self.region2_canvas.draw()
         self.total_canvas.draw()
+        
+    def save_spectrum(self):
+        items=['Region 1','Region 2']
+        self.updater()
+        text,ok=QInputDialog.getItem(self,'Save Spectrum','Saving:',items,0,False)
+        if ok and text:
+            name=QFileDialog.getSaveFileName(self,'File Name','','Text File (*.txt)')
+            f=open(name[0],'w')
+            if text=='Region 1' and name[0]!="":
+                counts=list(self.region1_spec.values())
+                bins=list(self.region1_spec.keys())
+                for i in range(len(bins)-1):
+                    f.write('{}\n'.format(counts[i]))
+            if text=='Region 2' and name[0]!='':
+                counts=list(self.region2_spec.values())
+                bins=list(self.region2_spec.keys())
+                for i in range(len(bins)-1):
+                    f.write('{}\n'.format(counts[i]))
+            f.close()
         
 if __name__ =="__main__":
     app=QApplication(sys.argv)
