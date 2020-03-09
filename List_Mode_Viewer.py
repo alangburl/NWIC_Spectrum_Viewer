@@ -141,6 +141,7 @@ class List_Mode_Viewer(QMainWindow):
                            'Text File (*.txt);;Comma Seperated File (*.csv)')
         if self.sync_filename[0]!="":
             self.sync=True
+            self.sync_location.setStyleSheet("background-color: green")
             if self.lis==True:
                 self.process_new.setEnabled(True)
     def detector_browse(self):
@@ -149,6 +150,7 @@ class List_Mode_Viewer(QMainWindow):
                            'Text File (*.txt);;Comma Seperated File (*.csv)')
         if self.list_filename[0]!="":
             self.lis=True
+            self.detector_location.setStyleSheet("background-color: green")
             if self.sync==True:
                 self.process_new.setEnabled(True)
     def calibration_browse(self):
@@ -295,11 +297,11 @@ class List_Mode_Viewer(QMainWindow):
             self.region1_ax.set_xlim(0,len(list(self.region1_spec.keys())))
             self.region2_ax.set_xlim(0,len(list(self.region2_spec.keys())))
             self.total_ax.set_xlim(0,len(list(self.region2_spec.keys())))
-            self.region1_ax.plot(uncal_keys,r1_values)
-            self.region2_ax.plot(uncal_keys,r2_values)
-            self.total_ax.plot(uncal_keys,total[:-1],label='Total')
-            self.total_ax.plot(uncal_keys,r1_values,label='Region 1')
-            self.total_ax.plot(uncal_keys,r2_values,label='Region 2')
+            self.region1_ax.plot(uncal_keys[:-1],r1_values)
+            self.region2_ax.plot(uncal_keys[:-1],r2_values)
+            self.total_ax.plot(uncal_keys[:-1],total[:-1],label='Total')
+            self.total_ax.plot(uncal_keys[:-1],r1_values,label='Region 1')
+            self.total_ax.plot(uncal_keys[:-1],r2_values,label='Region 2')
         self.region1_ax.set_yscale('log')
         self.region2_ax.set_yscale('log')
         self.total_ax.set_yscale('log')

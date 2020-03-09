@@ -12,7 +12,6 @@ from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              QInputDialog)
 from PyQt5.QtGui import (QFont,QStandardItemModel,QStandardItem)
 from PyQt5.QtCore import Qt,QModelIndex
-import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
