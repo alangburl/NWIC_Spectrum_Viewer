@@ -13,7 +13,7 @@ import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
-
+import matplotlib.pyplot as plt
 
 class List_Mode_Viewer(QMainWindow):
     sync=False
@@ -261,12 +261,13 @@ class List_Mode_Viewer(QMainWindow):
         delta_time=self.duty_cycle.value()/100*(
                 self.sync_time[2]-self.sync_time[1])
         delta_time+=self.offset.value()
-        self.region1_spec,self.region2_spec=self.list_mode_processor.timing(
+        self.region1_spec,self.region2_spec,self.time=self.list_mode_processor.timing(
                                         delta_time,self.sync_time,
                                         self.list_time,self.list_channel)
         total=[]
         for i in range(len(list(self.region2_spec.values()))):
-            total.append(list(self.region2_spec.values())[i]+list(self.region1_spec.values())[i])
+            total.append(list(self.region2_spec.values())[i]+list(
+                    self.region1_spec.values())[i])
         self.region1_ax.clear()
         self.region2_ax.clear()
         self.total_ax.clear()

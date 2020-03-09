@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os,sys,time
+import Timing
+import Conversion
 class List_Mode():
     def __init__(self,num_channels=8192):
         '''Delta time: offset after the sync pulse used to define regions 1 &2
@@ -20,6 +22,10 @@ class List_Mode():
         s=time.time()
         timing=[]
         channel=[]
+#        n_data=np.asarray(data)
+#        n_len=n_data.size
+#        scalar=1e-6
+#        timing,channel=Conversion.convert(n_data,n_len,scalar,1)
         for i in range(1,len(data)):
             vals=data[i].split(sep=';')
             timing.append(float(vals[0])*1e-6)
@@ -38,74 +44,45 @@ class List_Mode():
         for i in range(self.num_channels):
             self.region1_spectrum[i]=0
             self.region2_spectrum[i]=0
-        #two different lists one to go from the sync pulse to the 
-        #region divider time and the other from the region divider time
-        #to the next sync pulse
-#        region_1_timing_splits=np.linspace(0,self.delta_time,10)
-#        region_2_timing_splits=np.linspace(self.delta_time,
-#                                           s_time[1]-s_time[0],10)
-#        region_1_counts=[0]*len(region_1_timing_splits)
-#        region_2_counts=[0]*len(region_2_timing_splits)
-        #get the spectral data 
-#        d_time,d_channels=self.read_file(self.location)
+        #convert the lists in np arrays for cython to work with
+        
+        sync_time=np.asarray(s_time)
+        detec_time=np.asarray(d_time)
+        detec_channels=np.asarray(d_channels)
+        sync_num=sync_time.size
         #loop through the sync pulse times
-        d_loc=0
+#        d_loc=0
+#        split_loc=0
         s=time.time()
-        for i in range(len(s_time)-1):
-            #loop through the spectral data until the next sync pulse occurs
-            while d_time[d_loc]<s_time[i]+self.delta_time:
-#                for j in range(len(region_1_timing_splits)-1):
-#                    if d_time[d_loc]<region_1_timing_splits[j+1]+s_time[i] \
-#                    and d_time[d_loc]>=region_1_timing_splits[j]+s_time[i]:
-#                        region_1_counts[j]+=1
-#                        break
-                self.region1_spectrum[d_channels[d_loc]]+=1
-                d_loc+=1
-                
-            while d_time[d_loc]<s_time[i+1]:
-#                for j in range(len(region_2_timing_splits)-1):
-#                    if d_time[d_loc]<region_2_timing_splits[j+1]+s_time[i] \
-#                    and d_time[d_loc]>=region_2_timing_splits[j]+s_time[i]:
-#                        region_2_counts[j]+=1
-#                        break
-                self.region2_spectrum[d_channels[d_loc]]+=1
-                d_loc+=1
+        r1,r2=Timing.channel_timing(sync_time,sync_num,detec_time,
+                                    detec_channels,delta_time,
+                                    self.num_channels)
+        for i in range(len(r1)):
+            self.region1_spectrum[i]=r1[i]
+            self.region2_spectrum[i]=r2[i]
+#        for i in range(len(s_time)-1):
+#            #loop through the spectral data until the next sync pulse occurs
+#            while d_time[d_loc]<s_time[i]+self.delta_time:
+#                self.region1_spectrum[d_channels[d_loc]]+=1
+#                d_loc+=1
+#                    
+#            split_loc=d_loc
+#            while d_time[d_loc]<s_time[i+1]:
+#                self.region2_spectrum[d_channels[d_loc]]+=1
+#                d_loc+=1
         print('Process time {:.2f}'.format(time.time()-s))
-#        self.save_spectrum()
+        s=time.time()
+        #convert the sync time and pulse times to np arrays for cython
+        pulse_bins=30
+        pulse_timing=np.linspace(0,(s_time[2]-s_time[1]),pulse_bins)
+
+        pulse_times=Timing.time_point(sync_time,detec_time,sync_num,
+                                      pulse_timing,pulse_bins)
+        print('Process timing in: {:.2f}s'.format(time.time()-s))
+        del sync_time
+        del detec_time
         del s_time
         del d_time
         del d_channels
-        return [self.region1_spectrum,self.region2_spectrum]
-             
-    def save_spectrum(self):
-        '''save the spectrum in region one and two
-        '''
-        f=open('region1_.csv','w')
-        h=open('region2_.csv','w')
-        for i in range(len(list(self.region1_spectrum.values()))-1):
-            f.write('{}\n'.format(self.region1_spectrum[i]))
-            h.write('{}\n'.format(self.region2_spectrum[i])) 
-        f.close()
-        h.close()
-#if __name__=="__main__":
-#        loc=os.path.join(os.getcwd(),'Test_Data')
-#        file=os.path.join(loc,'905_1.csv')
-#        file1=os.path.join(loc,'905_3.csv')
-#        a=List_Mode(file1,file)
-#        spec2,coun2,spec1,coun1,t1,t2=a.timing(70)
-#        plt.figure(1)
-#        plt.plot(list(spec2.keys())[0:2000],list(spec2.values())[0:2000])
-#        plt.yscale('log')
-#        plt.ylabel('Counts')
-#        plt.xlabel('Channels')
-#        plt.title('Region 2 Spectrum')
-#        plt.savefig('Region2.png',dpi=600,figsize=(6,6))
-#        plt.show()
-#        plt.figure(2)
-#        plt.plot(list(spec1.keys())[0:2000],list(spec1.values())[0:2000])
-#        plt.yscale('log')
-#        plt.ylabel('Counts')
-#        plt.xlabel('Channels')
-#        plt.title('Region 1 Spectrum')
-#        plt.savefig('Region1.png',dpi=600,figsize=(6,6))
-#        plt.show()
+        return [self.region1_spectrum,self.region2_spectrum,
+                [pulse_times,pulse_timing]]
