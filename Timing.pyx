@@ -3,7 +3,7 @@ def time_point(double[:] sync_time, double[:] detector_time, int s, double[:] bi
     '''Used to find the time spread of the pulses'''
     cdef int i,j
     cdef int dd=0
-    cdef double[:] output= np.zeros(s)
+    cdef double[:] output= np.zeros(b)
     
     for i in range(s-1):
         while detector_time[dd]<sync_time[i+1]:

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os,sys,time
 import Timing
-import Conversion
+
 class List_Mode():
     def __init__(self,num_channels=8192):
         '''Delta time: offset after the sync pulse used to define regions 1 &2
@@ -60,20 +60,11 @@ class List_Mode():
         for i in range(len(r1)):
             self.region1_spectrum[i]=r1[i]
             self.region2_spectrum[i]=r2[i]
-#        for i in range(len(s_time)-1):
-#            #loop through the spectral data until the next sync pulse occurs
-#            while d_time[d_loc]<s_time[i]+self.delta_time:
-#                self.region1_spectrum[d_channels[d_loc]]+=1
-#                d_loc+=1
-#                    
-#            split_loc=d_loc
-#            while d_time[d_loc]<s_time[i+1]:
-#                self.region2_spectrum[d_channels[d_loc]]+=1
-#                d_loc+=1
+
         print('Process time {:.2f}'.format(time.time()-s))
         s=time.time()
         #convert the sync time and pulse times to np arrays for cython
-        pulse_bins=30
+        pulse_bins=60
         pulse_timing=np.linspace(0,(s_time[2]-s_time[1]),pulse_bins)
 
         pulse_times=Timing.time_point(sync_time,detec_time,sync_num,

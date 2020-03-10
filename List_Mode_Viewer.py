@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              QMainWindow,QAction,QVBoxLayout
                              ,QDockWidget,QListView,
                              QAbstractItemView,QLabel,QFileDialog,QTextEdit,
-                             QInputDialog,QSlider)
+                             QInputDialog,QSlider,QMdiArea,QMdiSubWindow)
 from PyQt5.QtGui import (QFont,QStandardItemModel,QStandardItem)
 from PyQt5.QtCore import Qt,QModelIndex
 import numpy as np
@@ -28,7 +28,7 @@ class List_Mode_Viewer(QMainWindow):
         self.menu()
         self.geometry()
         self.showMaximized()
-        self.popup()
+#        self.popup()
         self.show()
         
     def menu(self):
@@ -42,12 +42,19 @@ class List_Mode_Viewer(QMainWindow):
         
         self.menuView=self.menuBar().addMenu('&View')
         self.view_pop=QAction('&Show Tools')
-        self.view_pop.triggered.connect(self.popup)
+        self.view_pop.triggered.connect(self.popup_)
         self.view_pop.setShortcut('CTRL+U')
-        self.menuView.addActions([self.view_pop])
+        self.view_pop.setEnabled(False)
+        
+        self.view_all=QAction('&Show Plots')
+        self.view_all.triggered.connect(self.initiate)
+        self.view_all.setShortcut('CTRL+V')
+        
+        self.menuView.addActions([self.view_pop,self.view_all])
         self.menuFile.addActions([self.load_new,self.save_file])
-    def geometry(self):
-        self.central_widget=QWidget()
+        
+    def geometry(self):        
+#        self.central_widget=QWidget()
         self.region1_plot=QWidget()
         self.region1_figure=Figure()
         self.region1_canvas=FigureCanvas(self.region1_figure)
@@ -80,12 +87,43 @@ class List_Mode_Viewer(QMainWindow):
         self.total_ax=self.total_canvas.figure.subplots()
         self.total_ax.set_title('Total')
         
-        layout=QGridLayout()
-        layout.addWidget(self.region1_plot,0,0)
-        layout.addWidget(self.region2_plot,0,1)
-        layout.addWidget(self.total_plot,1,0,1,2)
-        self.central_widget.setLayout(layout)
-        self.setCentralWidget(self.central_widget)
+        self.time_plot=QWidget()
+        self.time_figure=Figure()
+        self.time_canvas=FigureCanvas(self.time_figure)
+        self.time_toolbar=NavigationToolbar(self.time_canvas,self)
+        layout=QVBoxLayout()
+        layout.addWidget(self.time_toolbar)
+        layout.addWidget(self.time_canvas)
+        self.time_plot.setLayout(layout)
+        self.time_ax=self.time_canvas.figure.subplots()
+        self.time_ax.set_title('Time')
+        self.setup()
+        
+    def setup(self):
+        sub1=QMdiSubWindow()
+        sub1.setWidget(self.region1_plot)
+        sub1.setWindowTitle('Region 1 Plot')
+        
+        sub2=QMdiSubWindow()
+        sub2.setWidget(self.region2_plot)
+        sub2.setWindowTitle('Region 2 Plot')
+        
+        sub3=QMdiSubWindow()
+        sub3.setWidget(self.total_plot)
+        sub3.setWindowTitle('Total Plot')
+        
+        sub4=QMdiSubWindow()
+        sub4.setWidget(self.time_plot)
+        sub4.setWindowTitle('Time Plot')
+        
+        self.mdi=QMdiArea()
+        self.mdi.addSubWindow(sub1)
+        self.mdi.addSubWindow(sub2)
+        self.mdi.addSubWindow(sub3)
+        self.mdi.addSubWindow(sub4)
+        
+        self.mdi.tileSubWindows()
+        self.setCentralWidget(self.mdi)
         
     def loading(self):
         self.loader=QWidget()
@@ -113,7 +151,8 @@ class List_Mode_Viewer(QMainWindow):
         self.calibration_label.setFont(self.font)
         
         self.calibration_location=QPushButton('Browse')
-        self.calibration_location.setSizePolicy(self.size_policy,self.size_policy)
+        self.calibration_location.setSizePolicy(self.size_policy,
+                                                self.size_policy)
         self.calibration_location.setFont(self.font)
         self.calibration_location.clicked.connect(self.calibration_browse)
         
@@ -173,6 +212,7 @@ class List_Mode_Viewer(QMainWindow):
         except:
             True
         self.save_file.setEnabled(True)
+        self.popup_()
         self.list_mode_processor=List_Mode()
         self.sync_time,sync_channel=self.list_mode_processor.read_file(
                 self.sync_filename[0])
@@ -181,9 +221,10 @@ class List_Mode_Viewer(QMainWindow):
                 self.list_filename[0])
         delt=(self.sync_time[2]-self.sync_time[1])
         self.offset.setMaximum(delt-self.duty_cycle.value()/100*delt)
+        self.view_pop.setEnabled(True)
         self.updater()
         
-    def popup(self):
+    def popup_(self):
         self.popup=QWidget()
         self.popup.setWindowTitle('View Controls')
         self.popup.setSizePolicy(self.size_policy,self.size_policy)
@@ -260,6 +301,7 @@ class List_Mode_Viewer(QMainWindow):
     def updater(self):
         delta_time=self.duty_cycle.value()/100*(
                 self.sync_time[2]-self.sync_time[1])
+        sync_width=delta_time
         delta_time+=self.offset.value()
         self.region1_spec,self.region2_spec,self.time=self.list_mode_processor.timing(
                                         delta_time,self.sync_time,
@@ -306,29 +348,55 @@ class List_Mode_Viewer(QMainWindow):
         self.region1_ax.set_yscale('log')
         self.region2_ax.set_yscale('log')
         self.total_ax.set_yscale('log')
+        self.region1_ax.set_ylabel('Counts')
+        self.region2_ax.set_ylabel('Counts')
+        self.total_ax.set_ylabel('Counts')
         self.total_ax.legend()
         self.region1_canvas.draw()
         self.region2_canvas.draw()
         self.total_canvas.draw()
         
+        #plot the timing stuff
+        self.time_ax.clear()
+        self.time_ax.plot(self.time[1],self.time[0],'--',label='Time Distribution')
+        height=max(self.time[0])
+        ys=[0,height,height,0]
+        xs=[0,0,sync_width,sync_width]
+        self.time_ax.plot(xs,ys,label='Sync Pulse')
+        self.time_ax.set_xlabel(r'Time [$\mu$s]')
+        self.time_ax.set_title('Time')
+        self.time_ax.set_ylabel('Counts')
+        self.time_ax.set_yscale('log')
+        self.time_ax.legend()
+        self.time_canvas.draw()
+        
     def save_spectrum(self):
         items=['Region 1','Region 2']
         self.updater()
-        text,ok=QInputDialog.getItem(self,'Save Spectrum','Saving:',items,0,False)
+        text,ok=QInputDialog.getItem(self,'Save Spectrum','Saving:',
+                                     items,0,False)
         if ok and text:
-            name=QFileDialog.getSaveFileName(self,'File Name','','Text File (*.txt)')
-            f=open(name[0],'w')
-            if text=='Region 1' and name[0]!="":
-                counts=list(self.region1_spec.values())
-                bins=list(self.region1_spec.keys())
-                for i in range(len(bins)-1):
-                    f.write('{}\n'.format(counts[i]))
-            if text=='Region 2' and name[0]!='':
-                counts=list(self.region2_spec.values())
-                bins=list(self.region2_spec.keys())
-                for i in range(len(bins)-1):
-                    f.write('{}\n'.format(counts[i]))
-            f.close()
+            name=QFileDialog.getSaveFileName(self,'File Name','',
+                                             'Text File (*.txt)')
+            try:
+                f=open(name[0],'w')
+                if text=='Region 1' and name[0]!=" ":
+                    counts=list(self.region1_spec.values())
+                    bins=list(self.region1_spec.keys())
+                    for i in range(len(bins)-1):
+                        f.write('{}\n'.format(counts[i]))
+                if text=='Region 2' and name[0]!='':
+                    counts=list(self.region2_spec.values())
+                    bins=list(self.region2_spec.keys())
+                    for i in range(len(bins)-1):
+                        f.write('{}\n'.format(counts[i]))
+                f.close()
+            except:
+                pass
+    
+    def initiate(self):
+        self.geometry()
+        self.updater()
         
 if __name__ =="__main__":
     app=QApplication(sys.argv)
