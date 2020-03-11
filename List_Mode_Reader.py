@@ -64,7 +64,7 @@ class List_Mode():
         print('Process time {:.2f}'.format(time.time()-s))
         s=time.time()
         #convert the sync time and pulse times to np arrays for cython
-        pulse_bins=60
+        pulse_bins=100
         pulse_timing=np.linspace(0,(s_time[2]-s_time[1]),pulse_bins)
 
         pulse_times=Timing.time_point(sync_time,detec_time,sync_num,
