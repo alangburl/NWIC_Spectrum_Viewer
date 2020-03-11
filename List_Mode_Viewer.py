@@ -1,6 +1,6 @@
 from List_Mode_Reader import List_Mode 
 #prefined imports
-import sys
+import sys,time
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              QSizePolicy,QLineEdit,
                              QMainWindow,QAction,QVBoxLayout
@@ -214,11 +214,32 @@ class List_Mode_Viewer(QMainWindow):
         self.save_file.setEnabled(True)
         self.popup_()
         self.list_mode_processor=List_Mode()
+        #a way to notify the user of the current state of the processing
+        self.notifier=QTextEdit()
+        self.notifier.setFont(self.font)
+        self.notifier.setSizePolicy(self.size_policy,self.size_policy)
+        self.notifier.setReadOnly(True)
+        
+        self.notify_window=QWidget()
+        self.notify_window.setSizePolicy(self.size_policy,self.size_policy)
+        self.notify_window.setFont(self.font)
+        self.notify_window.setWindowTitle('Loading Information')
+        layout=QVBoxLayout()
+        layout.addWidget(self.notifier)
+        self.notify_window.setLayout(layout)
+        self.notify_window.show()
+        
+        self.notifier.append('Begin Opening Sync File')
+        s=time.time()
         self.sync_time,sync_channel=self.list_mode_processor.read_file(
                 self.sync_filename[0])
+        self.notifier.append('Sync File Read in and Processed in {:.2f}s'.format(time.time()-s))
         del sync_channel
+        self.notifier.append('Begin Opening Pulse File, \nthis may take several minutes')
+        s=time.time()
         self.list_time,self.list_channel=self.list_mode_processor.read_file(
                 self.list_filename[0])
+        self.notifier.append('Pulse File Read in and Processed in {:.2f}'.format(time.time()-s))
         delt=(self.sync_time[2]-self.sync_time[1])
         self.offset.setMaximum(delt-self.duty_cycle.value()/100*delt)
         self.view_pop.setEnabled(True)
@@ -303,9 +324,12 @@ class List_Mode_Viewer(QMainWindow):
                 self.sync_time[2]-self.sync_time[1])
         sync_width=delta_time
         delta_time+=self.offset.value()
+        self.notifier.append('Begin Processing Data')
+        s=time.time()
         self.region1_spec,self.region2_spec,self.time=self.list_mode_processor.timing(
                                         delta_time,self.sync_time,
                                         self.list_time,self.list_channel)
+        self.notifier.append('Data Processed in {:.2f}s'.format(time.time()-s))
         total=[]
         for i in range(len(list(self.region2_spec.values()))):
             total.append(list(self.region2_spec.values())[i]+list(
@@ -369,6 +393,7 @@ class List_Mode_Viewer(QMainWindow):
         self.time_ax.set_yscale('log')
         self.time_ax.legend()
         self.time_canvas.draw()
+        self.notify_window.close()
         
     def save_spectrum(self):
         items=['Region 1','Region 2']

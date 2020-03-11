@@ -436,8 +436,11 @@ class Viewer(QMainWindow):
         text,ok=QInputDialog.getItem(self,'Save Spectrum','Saving:',items,0,False)
         if ok and text:
             name=QFileDialog.getSaveFileName(self,'Spe File Name','','IAEA (*.spe)')
-            if name!="":
-                Save_Spe(self.loaded_spectrum[text],text,name)
+            if name!=" ":
+                try:
+                    Save_Spe(self.loaded_spectrum[text],text,name)
+                except:
+                    pass
         
 if __name__=="__main__":
     app=QApplication(sys.argv)
