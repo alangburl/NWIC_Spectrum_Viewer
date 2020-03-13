@@ -1,10 +1,18 @@
 import numpy as np
 
-def convert(data,int data_len,float scalar,int offset):
+def convert(str file_name):
+    f=open(file_name, 'r')
+    data=f.readlines()
+    f.close()
+    cdef int l=len(data)
+    cdef double[:] timer=np.zeros(l)
+    cdef double[:] channel=np.zeros(l)
+    
     cdef int i
-    cdef double[:] times=np.zeros(data_len)
-    cdef double[:] channel=np.zeros(data_len)
-    for i in range(offset,data_len):
-        times[i]=float(data[i].split(sep=';')[0])*scalar
-        channel[i]=float(data[i].split(sep=';')[1])
-    return times, channel
+#    cdef str[4] d
+    
+    for i in range(1,l):
+        d=data[i].split(sep=';')
+        timer[i]=float(d[0])*1e-6
+        channel[i]=float(d[1])
+    return timer, channel
