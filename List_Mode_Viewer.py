@@ -1,4 +1,5 @@
 from List_Mode_Reader import List_Mode 
+import Conversion
 #prefined imports
 import sys,time
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
@@ -214,12 +215,17 @@ class List_Mode_Viewer(QMainWindow):
         self.save_file.setEnabled(True)
         self.popup_()
         self.list_mode_processor=List_Mode()
-        
-        self.sync_time,sync_channel=self.list_mode_processor.read_file(
-                self.sync_filename[0])
+        s=time.time()
+        self.sync_time,sync_channel=Conversion.convert(self.sync_filename[0])
         del sync_channel
-        self.list_time,self.list_channel=self.list_mode_processor.read_file(
-                self.list_filename[0])
+        self.list_time,self.list_channel=Conversion.convert(self.list_filename[0])
+        
+#        self.sync_time,sync_channel=self.list_mode_processor.read_file(
+#                self.sync_filename[0])
+#        del sync_channel
+#        self.list_time,self.list_channel=self.list_mode_processor.read_file(
+#                self.list_filename[0])
+        print('Imported and conveted in {:.2f}s'.format(time.time()-s))
         delt=(self.sync_time[2]-self.sync_time[1])
         self.offset.setMaximum(delt-self.duty_cycle.value()/100*delt)
         self.view_pop.setEnabled(True)
