@@ -54,9 +54,16 @@ class List_Mode():
 #        d_loc=0
 #        split_loc=0
         s=time.time()
-        r1,r2=Timing.channel_timing(sync_time,sync_num,detec_time,
-                                    detec_channels,delta_time,
-                                    self.num_channels)
+        try:
+            r1,r2=Timing.channel_timing(sync_time,sync_num,detec_time,
+                                        detec_channels,delta_time,
+                                        self.num_channels)
+        except:
+            sync_num-=1
+            r1,r2=Timing.channel_timing(sync_time,sync_num,detec_time,
+                                        detec_channels,delta_time,
+                                        self.num_channels)
+            
         for i in range(len(r1)):
             self.region1_spectrum[i]=r1[i]
             self.region2_spectrum[i]=r2[i]
@@ -64,7 +71,7 @@ class List_Mode():
         print('Process time {:.2f}'.format(time.time()-s))
         s=time.time()
         #convert the sync time and pulse times to np arrays for cython
-        pulse_bins=100
+        pulse_bins=50
         pulse_timing=np.linspace(0,(s_time[2]-s_time[1]),pulse_bins)
 
         pulse_times=Timing.time_point(sync_time,detec_time,sync_num,

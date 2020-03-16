@@ -8,13 +8,13 @@ from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              ,QDockWidget,QListView,
                              QAbstractItemView,QLabel,QFileDialog,QTextEdit,
                              QInputDialog,QSlider,QMdiArea,QMdiSubWindow)
-from PyQt5.QtGui import (QFont,QStandardItemModel,QStandardItem)
-from PyQt5.QtCore import Qt,QModelIndex,QThread, pyqtSignal
-import numpy as np
+from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt
+#import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 class List_Mode_Viewer(QMainWindow):
     sync=False
@@ -39,6 +39,7 @@ class List_Mode_Viewer(QMainWindow):
         self.load_new.setShortcut('CTRL+N')
         self.save_file=QAction('&Save Spectrum')
         self.save_file.triggered.connect(self.save_spectrum)
+        self.save_file.setShortcut('CTRL+S')
         self.save_file.setEnabled(False)
         
         self.menuView=self.menuBar().addMenu('&View')
@@ -382,25 +383,32 @@ class List_Mode_Viewer(QMainWindow):
         self.time_canvas.draw()
         
     def save_spectrum(self):
-        items=['Region 1','Region 2']
+        items=['Region 1','Region 2','Time Decay']
         self.updater()
         text,ok=QInputDialog.getItem(self,'Save Spectrum','Saving:',
                                      items,0,False)
         if ok and text:
             name=QFileDialog.getSaveFileName(self,'File Name','',
-                                             'Text File (*.txt)')
+                             'Text File (*.txt);;Comma Seperated File (*.csv)')
             try:
                 f=open(name[0],'w')
-                if text=='Region 1' and name[0]!=" ":
+                if text==items[0] and name[0]!=" ":
                     counts=list(self.region1_spec.values())
                     bins=list(self.region1_spec.keys())
                     for i in range(len(bins)-1):
                         f.write('{}\n'.format(counts[i]))
-                if text=='Region 2' and name[0]!='':
+                if text==items[1] and name[0]!='':
                     counts=list(self.region2_spec.values())
                     bins=list(self.region2_spec.keys())
                     for i in range(len(bins)-1):
                         f.write('{}\n'.format(counts[i]))
+                if text==items[2] and name[0]!='':
+                    times=self.time[1][:-1]
+                    counts=self.time[0][:-1]
+                    f.write('Time[us],counts\n')
+                    for i in range(len(counts)):
+                        f.write('{:.9f},{}\n'.format(times[i],counts[i]))
+                    
                 f.close()
             except:
                 pass
