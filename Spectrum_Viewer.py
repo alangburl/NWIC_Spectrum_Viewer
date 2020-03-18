@@ -2,6 +2,8 @@
 from Load_New import Load_New as New
 from Calibration_Window import Calibration_Window as Window
 from Save_Spe import Save_Spe
+from Timing_plotter import Time_Window
+from List_Mode_Viewer import List_Mode_Viewer
 #prefined imports
 import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
@@ -75,9 +77,14 @@ class Viewer(QMainWindow):
         self.view_countrate.triggered.connect(self.rate_tracking)
         self.roi_action=QAction('&ROI Counts')
         self.roi_action.triggered.connect(self.roi_display)
+        self.timing_window=QAction('&View Time Decay')
+        self.timing_window.triggered.connect(self.time_display)
+        self.list_mode=QAction('&Analyze List Mode Data')
+        self.list_mode.triggered.connect(self.list_moder)
         self.menuView.addActions([self.view_energies,self.change_zoom,
                                   self.view_calibration_energies,
-                                  self.view_countrate,self.roi_action])
+                                  self.view_countrate,self.roi_action,
+                                  self.timing_window,self.list_mode])
         
     def geometry(self):
         self.open_=QDockWidget('Loaded Spectrums')
@@ -322,7 +329,7 @@ class Viewer(QMainWindow):
                                               ,options)
         
         if file_name:
-            self.figure.savefig(file_name[0],dpi=600,figsize=(10,6))
+            self.figure.savefig(file_name[0],dpi=600,figsize=(10,10))
     
     def spectrum_calibrate(self):
         '''Launch a calibration window
@@ -441,7 +448,11 @@ class Viewer(QMainWindow):
                     Save_Spe(self.loaded_spectrum[text],text,name)
                 except:
                     pass
+    def time_display(self):
+        self.di=Time_Window()
         
+    def list_moder(self):
+        self.lm=List_Mode_Viewer()
 if __name__=="__main__":
     app=QApplication(sys.argv)
     ex=Viewer()
