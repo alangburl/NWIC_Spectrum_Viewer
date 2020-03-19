@@ -26,14 +26,15 @@ class Time_Window(QWidget):
         
     def init(self):
         self.process=QPushButton('Process',self)
-        self.process.setSizePolicy(self.size_policy,self.size_policy)
+        self.process.setFont(self.font)
+#        self.process.setSizePolicy(self.size_policy,self.size_policy)
         self.process.clicked.connect(self.process_)
         self.process.setEnabled(False)
         self.progress=QProgressBar(self)
-        self.progress.setSizePolicy(self.size_policy,self.size_policy)
+#        self.progress.setSizePolicy(self.size_policy,self.size_policy)
         self.save_image=QPushButton('Save Image',self)
         self.save_image.setFont(self.font)
-        self.save_image.setSizePolicy(self.size_policy,self.size_policy)
+#        self.save_image.setSizePolicy(self.size_policy,self.size_policy)
         self.save_image.clicked.connect(self.saver)
         
         self.total_plot=QWidget()
@@ -56,9 +57,9 @@ class Time_Window(QWidget):
             self.proce()
         layout=QGridLayout(self)
         layout.addWidget(self.process,0,0)
-        layout.addWidget(self.progress,0,1)
+#        layout.addWidget(self.progress,0,1)
         layout.addWidget(self.total_plot,1,0,1,2)
-        layout.addWidget(self.save_image,2,0)
+        layout.addWidget(self.save_image,0,1)
         self.setLayout(layout)
 
     def proce(self):
@@ -81,13 +82,13 @@ class Time_Window(QWidget):
     def process_(self):
         duty,ok=QInputDialog.getInt(self,'Enter Duty Cycle','Duty Cycle %:',5,0,100)
         frequency,ok2=QInputDialog.getInt(self,'Enter Frequency','Frequency[Hz]:',200,0,1000)
-
+        markers=['c+','rx','k*','m1','y.','g8','b2','mh','c--','k+']
         self.total_ax.clear()
         maxr=0
         for i in range(len(self.file_names)):
             self.total_ax.plot(self.values[self.file_names[i]][0],
-                               self.values[self.file_names[i]][1],'*',
-                               label=self.file_names[i])
+                               self.values[self.file_names[i]][1],markers[i],
+                               label=self.file_names[i],markersize=12)
             if max(self.values[self.file_names[i]][1])> maxr:
                 maxr=max(self.values[self.file_names[i]][1])
         if ok and ok2:
@@ -98,10 +99,11 @@ class Time_Window(QWidget):
           label='Region divider at {:.1f}us\nafter rising edge'.format(on_time))
         
             self.total_ax.plot(xs,ys,label='Duty cycle: {}%'.format(duty))
-        self.total_ax.legend()
+        self.total_ax.legend(prop={'size':18})
         self.total_ax.set_yscale('log')
-        self.total_ax.set_ylabel('Counts')
-        self.total_ax.set_xlabel(r'Time [$\mu s$]')
+        self.total_ax.set_ylabel('Counts',fontsize=18)
+        self.total_ax.set_xlabel(r'Time [$\mu s$]',fontsize=18)
+        self.total_ax.tick_params(labelsize=18)
         self.total_canvas.draw()
         
     def get_data(self,file_name):

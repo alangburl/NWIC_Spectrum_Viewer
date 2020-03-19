@@ -318,7 +318,8 @@ class Viewer(QMainWindow):
         current=[round(float(k),2) for k in current]
         self.static_ax.set_xticks(current)
         self.static_ax.set_xticklabels(current, rotation=90)
-        self.static_ax.legend()
+        self.static_ax.legend(prop={'size':18})
+#        self.static_ax.tick_params(labelsize=18)
         self._canvas.draw()
         
     def save_fig(self):
@@ -354,13 +355,13 @@ class Viewer(QMainWindow):
         self.rater.show()
         
     def mouse_tracking(self):
-        self.txt=self.static_ax.text(0.8,0.9,"",transform=self.static_ax.transAxes)
+        self.txt=self.static_ax.text(0.85,0.6,"",transform=self.static_ax.transAxes)
         self.figure.canvas.mpl_connect('motion_notify_event',self.mouse_move)
         
     def mouse_move(self,event):
         if not event.inaxes:
             return
-        self.txt.set_text('Energy: {:,.2f} MeV'.format(event.xdata))
+        self.txt.set_text('Energy: {:,.3f} MeV'.format(event.xdata))
         self._canvas.draw()
         
     def roi_display(self):
@@ -421,7 +422,7 @@ class Viewer(QMainWindow):
             timer=float(self.loaded_spectrum[i][2])
             scale=0
             for j in range(len(roi_counts[i])):
-                scale+=roi_counts[i][j]*timer
+                scale+=roi_counts[i][j]#*timer
             roi[i]=scale
         self.display_roi=QWidget()
         self.display_roi.setWindowTitle('ROI counts')

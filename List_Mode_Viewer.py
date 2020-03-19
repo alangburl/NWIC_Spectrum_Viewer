@@ -1,5 +1,6 @@
 from List_Mode_Reader import List_Mode 
 import Conversion
+from Arrival_Timing import Arrival_Spread
 #prefined imports
 import sys,time
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
@@ -52,7 +53,10 @@ class List_Mode_Viewer(QMainWindow):
         self.view_all.triggered.connect(self.initiate)
         self.view_all.setShortcut('CTRL+V')
         
-        self.menuView.addActions([self.view_pop,self.view_all])
+        self.view_variation=QAction('&Pulse Deviation')
+        self.view_variation.triggered.connect(self.deviation)
+        
+        self.menuView.addActions([self.view_pop,self.view_all,self.view_variation])
         self.menuFile.addActions([self.load_new,self.save_file])
         
     def geometry(self):        
@@ -257,6 +261,7 @@ class List_Mode_Viewer(QMainWindow):
         self.duty_indicator.setFont(self.font)
         self.duty_indicator.setToolTip(
                 'Duty cycle of the sync pulse from\neutron generator')
+        self.duty_indicator.setReadOnly(True)
         
         self.offset_label=QLabel('Offset from sync [us]: ')
         self.offset_label.setSizePolicy(self.size_policy,self.size_policy)
@@ -280,6 +285,7 @@ class List_Mode_Viewer(QMainWindow):
         self.offset_indicator.setFont(self.font)
         self.offset_indicator.setToolTip(
             'After end of pulse to divide into Region 1 and 2 in micro seconds')
+        self.offset_indicator.setReadOnly(True)
         
         self.update=QPushButton('Update')
         self.update.setSizePolicy(self.size_policy,self.size_policy)
@@ -416,6 +422,9 @@ class List_Mode_Viewer(QMainWindow):
     def initiate(self):
         self.geometry()
         self.updater()
+        
+    def deviation(self):
+        Arrival_Spread(self.sync_filename[0]).process()
         
 if __name__ =="__main__":
     app=QApplication(sys.argv)
