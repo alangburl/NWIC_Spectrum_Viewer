@@ -233,6 +233,7 @@ class List_Mode_Viewer(QMainWindow):
         print('Imported and conveted in {:.2f}s'.format(time.time()-s))
         delt=(self.sync_time[2]-self.sync_time[1])
         self.offset.setMaximum(delt-self.duty_cycle.value()/100*delt)
+        self.offset.setMinimum(-(delt*self.duty_cycle.value()/100)*.5)
         self.view_pop.setEnabled(True)
         self.updater()
         
@@ -315,6 +316,8 @@ class List_Mode_Viewer(QMainWindow):
     def updater(self):
         delta_time=self.duty_cycle.value()/100*(
                 self.sync_time[2]-self.sync_time[1])
+        delt=(self.sync_time[2]-self.sync_time[1])
+        self.offset.setMinimum(-(delt*self.duty_cycle.value()/100)*.75)
         sync_width=delta_time
         delta_time+=self.offset.value()
         self.region1_spec,self.region2_spec,self.time=self.list_mode_processor.timing(
