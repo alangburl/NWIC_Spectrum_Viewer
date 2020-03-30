@@ -1,8 +1,11 @@
 from List_Mode_Reader import List_Mode 
 import Conversion
 from Arrival_Timing import Arrival_Spread
+from ROI_Arrival import ROI_Arrival,ROI_Location
+from ROI_Arrival_Viewer import ROI_Viewer
 #prefined imports
-import sys,time
+import sys,time,winsound
+import numpy as np
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              QSizePolicy,QLineEdit,
                              QMainWindow,QAction,QVBoxLayout
@@ -15,7 +18,7 @@ from PyQt5.QtCore import Qt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 class List_Mode_Viewer(QMainWindow):
     sync=False
@@ -56,7 +59,11 @@ class List_Mode_Viewer(QMainWindow):
         self.view_variation=QAction('&Pulse Deviation')
         self.view_variation.triggered.connect(self.deviation)
         
-        self.menuView.addActions([self.view_pop,self.view_all,self.view_variation])
+        self.view_roi_arrive=QAction('&ROI Arrival Times')
+        self.view_roi_arrive.triggered.connect(self.ROI_Arrivals)
+        
+        self.menuView.addActions([self.view_pop,self.view_all,self.view_variation,
+                                  self.view_roi_arrive])
         self.menuFile.addActions([self.load_new,self.save_file])
         
     def geometry(self):        
@@ -225,12 +232,8 @@ class List_Mode_Viewer(QMainWindow):
         del sync_channel
         self.list_time,self.list_channel=Conversion.convert(self.list_filename[0])
         
-#        self.sync_time,sync_channel=self.list_mode_processor.read_file(
-#                self.sync_filename[0])
-#        del sync_channel
-#        self.list_time,self.list_channel=self.list_mode_processor.read_file(
-#                self.list_filename[0])
         print('Imported and conveted in {:.2f}s'.format(time.time()-s))
+        winsound.MessageBeep()
         delt=(self.sync_time[2]-self.sync_time[1])
         self.offset.setMaximum(delt-self.duty_cycle.value()/100*delt)
         self.offset.setMinimum(-(delt*self.duty_cycle.value()/100)*.5)
@@ -320,6 +323,7 @@ class List_Mode_Viewer(QMainWindow):
         self.offset.setMinimum(-(delt*self.duty_cycle.value()/100)*.75)
         sync_width=delta_time
         delta_time+=self.offset.value()
+        self.delta_time=delta_time
         self.region1_spec,self.region2_spec,self.time=self.list_mode_processor.timing(
                                         delta_time,self.sync_time,
                                         self.list_time,self.list_channel)
@@ -390,6 +394,7 @@ class List_Mode_Viewer(QMainWindow):
         self.time_ax.set_yscale('log')
         self.time_ax.legend()
         self.time_canvas.draw()
+        winsound.MessageBeep()
         
     def save_spectrum(self):
         items=['Region 1','Region 2','Time Decay']
@@ -429,6 +434,25 @@ class List_Mode_Viewer(QMainWindow):
     def deviation(self):
         Arrival_Spread(self.sync_filename[0]).process()
         
+    def ROI_Arrivals(self):
+        #check to see if a calibration file exists, if not make them get one
+        if not self.calibration:
+            self.calibration_browse()
+        list_time=np.asarray(self.list_time)
+        list_channel=np.asarray(self.list_channel)
+        sync_time=np.asarray(self.sync_time)
+        calibration=np.asarray(self.calibration_data)
+        self.view=ROI_Viewer(list_time,list_channel,sync_time,calibration)
+        self.view.processer.clicked.connect(self.roi_arrive)
+        
+    def roi_arrive(self):
+#        while self.view.done!=True:
+#            False
+        self.time_ax.plot(self.view.bins,self.view.output,'*',
+         label='ROI of {}MeV-{}MeV'.format(self.view.lower,self.view.upper))
+        self.time_ax.legend()
+        self.time_canvas.draw()
+            
 if __name__ =="__main__":
     app=QApplication(sys.argv)
     ex=List_Mode_Viewer()

@@ -82,6 +82,9 @@ class Time_Window(QWidget):
     def process_(self):
         duty,ok=QInputDialog.getInt(self,'Enter Duty Cycle','Duty Cycle %:',5,0,100)
         frequency,ok2=QInputDialog.getInt(self,'Enter Frequency','Frequency[Hz]:',200,0,1000)
+        region1,ok3=QInputDialog.getInt(self,'Enter Region1','Region 1 Divider:',5,0,5000)
+        region2,ok4=QInputDialog.getInt(self,'Enter Region2','Region 2 Divider:',5,0,5000)
+        
         markers=['c+','rx','k*','m1','y.','g8','b2','mh','c--','k+']
         self.total_ax.clear()
         maxr=0
@@ -95,10 +98,14 @@ class Time_Window(QWidget):
             on_time=(1/frequency)*(duty/100)*1e6
             xs=[0,0,on_time,on_time]
             ys=[0,maxr,maxr,0]
-            self.total_ax.axvline(on_time,
-          label='Region divider at {:.1f}us\nafter rising edge'.format(on_time))
-        
             self.total_ax.plot(xs,ys,label='Duty cycle: {}%'.format(duty))
+#            self.total_ax.axvline(on_time,
+#          label='Region divider at {:.1f}us\nafter rising edge'.format(on_time))
+        if ok3 and ok4:
+            self.total_ax.axvline(region1,color='olive',
+                                  label='Region 1-2 Divider, {:,.1f}us after rising edge'.format(region1))
+            self.total_ax.axvline(region2,color='navy',
+                                  label='Region 2-3 Divider, {:,.1f}us after rising edge'.format(region2))
         self.total_ax.legend(prop={'size':18})
         self.total_ax.set_yscale('log')
         self.total_ax.set_ylabel('Counts',fontsize=18)
@@ -114,9 +121,10 @@ class Time_Window(QWidget):
             counts=[]
             times=[]
             for i in range(1,len(data)):
-                line=data[i].split(sep=',')
-                times.append(float(line[0]))
-                counts.append(float(line[1]))
+                if '%' not in data[i]:
+                    line=data[i].split(sep=',')
+                    times.append(float(line[0]))
+                    counts.append(float(line[1]))
             return times,counts
         except:
             pass
