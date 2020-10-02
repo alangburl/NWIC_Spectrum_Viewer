@@ -4,6 +4,9 @@ from Calibration_Window import Calibration_Window as Window
 from Save_Spe import Save_Spe
 from Timing_plotter import Time_Window
 from List_Mode_Viewer import List_Mode_Viewer
+from std_calculation import net_std
+from Decay import Background_Decay as bkg
+import matplotlib.pyplot as plt
 #prefined imports
 import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
@@ -81,10 +84,17 @@ class Viewer(QMainWindow):
         self.timing_window.triggered.connect(self.time_display)
         self.list_mode=QAction('&Analyze List Mode Data')
         self.list_mode.triggered.connect(self.list_moder)
+        self.roi_uncertainty=QAction('&ROI Uncertainties')
+        self.roi_uncertainty.triggered.connect(self.roi_count_rate_uncertainty)
+        
+        self.dieaway=QAction('&Analyze Die Away')
+        self.dieaway.triggered.connect(self.bck_die_away)
+        
         self.menuView.addActions([self.view_energies,self.change_zoom,
                                   self.view_calibration_energies,
                                   self.view_countrate,self.roi_action,
-                                  self.timing_window,self.list_mode])
+                                  self.timing_window,self.list_mode,
+                                  self.roi_uncertainty,self.dieaway])
         
     def geometry(self):
         self.open_=QDockWidget('Loaded Spectrums')
@@ -424,17 +434,22 @@ class Viewer(QMainWindow):
             for j in range(len(roi_counts[i])):
                 scale+=roi_counts[i][j]#*timer
             roi[i]=scale
-        self.display_roi=QWidget()
-        self.display_roi.setWindowTitle('ROI counts')
-        rois=QTextEdit()
-        rois.setFont(self.font)
-        rois.setSizePolicy(self.size_policy,self.size_policy)
-        for i in list(roi.keys()):
-            rois.append('{}: {} counts'.format(i,roi[i]))
-        layout=QVBoxLayout()
-        layout.addWidget(rois)
-        self.display_roi.setLayout(layout)
-        self.display_roi.show()
+        self.roi_counts=roi
+        if self.display==False:
+            self.uncertain()
+        if self.display:
+            self.display_roi=QWidget()
+            self.display_roi.setWindowTitle('ROI counts')
+            rois=QTextEdit()
+            rois.setFont(self.font)
+            rois.setSizePolicy(self.size_policy,self.size_policy)
+            for i in list(roi.keys()):
+                rois.append('{}: {:.4f} cps'.format(i,roi[i]))
+            layout=QVBoxLayout()
+            layout.addWidget(rois)
+            self.display_roi.setLayout(layout)
+            self.display_roi.show()
+        self.display=True
         
     def spe(self):
         '''Save the selected file out to an spe file format, even though the
@@ -454,6 +469,60 @@ class Viewer(QMainWindow):
         
     def list_moder(self):
         self.lm=List_Mode_Viewer()
+        
+    def roi_count_rate_uncertainty(self):
+        '''Calculate the std of the ROI count rates-- will 
+        eventaully have the ability to indicate which loaded spectrum 
+        are desired'''
+        self.display=False
+        self.roi_display()
+        # self.display=True
+    def uncertain(self):
+        # now to select the foreground and background spectrum:
+        foreground,ok=QInputDialog.getItem(self,'Foreground','Select Foreground',
+                                      self.roi_counts.keys(),0,False)
+        background,ok2=QInputDialog.getItem(self,'Background','Select Background',
+                                      self.roi_counts.keys(),0,False)
+        if ok and ok2:
+            #get the count rates from both of them
+            uncer=net_std(self.roi_counts[foreground],self.roi_counts[background])
+            u=uncer.calculate_uncertainties()
+            net_cr=self.roi_counts[foreground]-self.roi_counts[background]
+            self.uncertainty_display(u,net_cr,foreground,background)
+            
+    def uncertainty_display(self,net_uncer,net_count_rate,foreground,background):
+        self.rateu=QWidget()
+        self.rateu.setWindowTitle('Count Rates')
+        editor=QTextEdit()
+        editor.setFont(self.font)
+        editor.setReadOnly(True)
+        editor.setSizePolicy(self.size_policy, self.size_policy)
+        fore_cps=self.roi_counts[foreground]
+        back_cps=self.roi_counts[background]
+        editorappd=['Foreground: {}: {:.3f} +\- {:.3f} cps'.format(foreground,fore_cps,fore_cps**0.5),
+                    'Background: {}: {:.3f} +\- {:.3f} cps'.format(background,back_cps,back_cps**0.5),
+                    'Net: {:.3f} +\- {:.3f} cps'.format(net_count_rate,net_uncer)
+                    ]
+        for i in editorappd:
+            editor.append(i)
+        
+        layout=QVBoxLayout()
+        layout.addWidget(editor)
+        self.rateu.setLayout(layout)
+        self.rateu.show()
+        
+    def bck_die_away(self):
+        #get the file 
+        file_name,ok=QFileDialog.getOpenFileName(self,
+                           'Background List Mode File',"",
+                           'Comma Seperated File (*.csv);;Text File (*.txt)')
+        
+        num_bins,ok2=QInputDialog.getInt(self,'Enter number of bins','Bins:',300,0,3600)
+        if file_name!='' and ok and ok2:
+            cts,time=bkg(file_name,num_bins).process_data()
+        plt.plot(time,cts)
+        plt.show()
+            
 if __name__=="__main__":
     app=QApplication(sys.argv)
     ex=Viewer()

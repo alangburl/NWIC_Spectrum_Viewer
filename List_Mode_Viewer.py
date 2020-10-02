@@ -3,6 +3,7 @@ import Conversion
 from Arrival_Timing import Arrival_Spread
 from ROI_Arrival import ROI_Arrival,ROI_Location
 from ROI_Arrival_Viewer import ROI_Viewer
+
 #prefined imports
 import sys,time,winsound
 import numpy as np
@@ -224,6 +225,7 @@ class List_Mode_Viewer(QMainWindow):
             self.loader.close()
         except:
             True
+        self.setWindowTitle(self.list_filename[0])
         self.save_file.setEnabled(True)
         self.popup_()
         self.list_mode_processor=List_Mode()
