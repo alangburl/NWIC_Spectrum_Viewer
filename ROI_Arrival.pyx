@@ -20,19 +20,22 @@ def ROI_Arrival(double[:] sync_time, double[:] detector_time, int s,
             num_roi_pulses+=1
     #create a numpy array for the arrival times of the pulses
     cdef double[:] roi_pulse_arrival=np.zeros(num_roi_pulses)
+    cdef double[:] roi_arrival_raw=np.zeros(num_roi_pulses)
     cdef double[:] roi_pulse_heights=np.zeros(num_roi_pulses)
     cdef int roi_processed=0
+    cdef double init=detector_time[0]
     for i in range(s-1):
         while detector_time[dd]<sync_time[i+1]:
             if roi_processed<=num_roi_pulses:
                 if calibrated_pulse[dd]>=lower and calibrated_pulse[dd]<=upper:
                     roi_pulse_arrival[roi_processed]=detector_time[dd]-sync_time[i]
+                    roi_arrival_raw[roi_processed]=detector_time[dd]-init
                     roi_pulse_heights[roi_processed]=calibrated_pulse[dd]
                     roi_processed+=1
                 dd+=1
             else:
                 break
-    return roi_pulse_arrival, roi_pulse_heights
+    return roi_pulse_arrival, roi_pulse_heights,roi_arrival_raw
 
 def ROI_Location(double[:] times, double[:] bins, int b,int s):
     cdef double[:] output=np.zeros(b)
@@ -43,3 +46,5 @@ def ROI_Location(double[:] times, double[:] bins, int b,int s):
                 output[j]+=1    
             
     return output
+    
+    

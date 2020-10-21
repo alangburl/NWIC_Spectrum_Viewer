@@ -30,6 +30,7 @@ class List_Mode():
             vals=data[i].split(sep=';')
             timing.append(float(vals[0])*1e-6)
             channel.append(float(vals[1]))
+        print('here')
         del data
         print('Loaded in {:.2f} s'.format(time.time()-s))
         return timing,channel

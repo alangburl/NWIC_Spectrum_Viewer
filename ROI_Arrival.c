@@ -1776,6 +1776,7 @@ static const char __pyx_k_obj[] = "obj";
 static const char __pyx_k_base[] = "base";
 static const char __pyx_k_bins[] = "bins";
 static const char __pyx_k_dict[] = "__dict__";
+static const char __pyx_k_init[] = "init";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_mode[] = "mode";
 static const char __pyx_k_name[] = "name";
@@ -1843,6 +1844,7 @@ static const char __pyx_k_View_MemoryView[] = "View.MemoryView";
 static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static const char __pyx_k_pyx_PickleError[] = "__pyx_PickleError";
+static const char __pyx_k_roi_arrival_raw[] = "roi_arrival_raw";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
 static const char __pyx_k_calibrated_pulse[] = "calibrated_pulse";
 static const char __pyx_k_pyx_unpickle_Enum[] = "__pyx_unpickle_Enum";
@@ -1928,6 +1930,7 @@ static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_n_s_i;
 static PyObject *__pyx_n_s_id;
 static PyObject *__pyx_n_s_import;
+static PyObject *__pyx_n_s_init;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
 static PyObject *__pyx_n_s_j;
@@ -1961,6 +1964,7 @@ static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
+static PyObject *__pyx_n_s_roi_arrival_raw;
 static PyObject *__pyx_n_s_roi_processed;
 static PyObject *__pyx_n_s_roi_pulse_arrival;
 static PyObject *__pyx_n_s_roi_pulse_heights;
@@ -2216,8 +2220,10 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
   int __pyx_v_calib_len;
   __Pyx_memviewslice __pyx_v_calibrated_pulse = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_roi_pulse_arrival = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_roi_arrival_raw = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_roi_pulse_heights = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_roi_processed;
+  double __pyx_v_init;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   size_t __pyx_t_1;
@@ -2468,8 +2474,8 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
  *             num_roi_pulses+=1
  *     #create a numpy array for the arrival times of the pulses
  *     cdef double[:] roi_pulse_arrival=np.zeros(num_roi_pulses)             # <<<<<<<<<<<<<<
+ *     cdef double[:] roi_arrival_raw=np.zeros(num_roi_pulses)
  *     cdef double[:] roi_pulse_heights=np.zeros(num_roi_pulses)
- *     cdef int roi_processed=0
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -2503,9 +2509,9 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
   /* "ROI_Arrival.pyx":23
  *     #create a numpy array for the arrival times of the pulses
  *     cdef double[:] roi_pulse_arrival=np.zeros(num_roi_pulses)
- *     cdef double[:] roi_pulse_heights=np.zeros(num_roi_pulses)             # <<<<<<<<<<<<<<
+ *     cdef double[:] roi_arrival_raw=np.zeros(num_roi_pulses)             # <<<<<<<<<<<<<<
+ *     cdef double[:] roi_pulse_heights=np.zeros(num_roi_pulses)
  *     cdef int roi_processed=0
- *     for i in range(s-1):
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -2532,22 +2538,77 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_v_roi_pulse_heights = __pyx_t_6;
+  __pyx_v_roi_arrival_raw = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
   /* "ROI_Arrival.pyx":24
  *     cdef double[:] roi_pulse_arrival=np.zeros(num_roi_pulses)
+ *     cdef double[:] roi_arrival_raw=np.zeros(num_roi_pulses)
+ *     cdef double[:] roi_pulse_heights=np.zeros(num_roi_pulses)             # <<<<<<<<<<<<<<
+ *     cdef int roi_processed=0
+ *     cdef double init=detector_time[0]
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_roi_pulses); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  __pyx_t_3 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_5, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_v_roi_pulse_heights = __pyx_t_6;
+  __pyx_t_6.memview = NULL;
+  __pyx_t_6.data = NULL;
+
+  /* "ROI_Arrival.pyx":25
+ *     cdef double[:] roi_arrival_raw=np.zeros(num_roi_pulses)
  *     cdef double[:] roi_pulse_heights=np.zeros(num_roi_pulses)
  *     cdef int roi_processed=0             # <<<<<<<<<<<<<<
+ *     cdef double init=detector_time[0]
  *     for i in range(s-1):
- *         while detector_time[dd]<sync_time[i+1]:
  */
   __pyx_v_roi_processed = 0;
 
-  /* "ROI_Arrival.pyx":25
+  /* "ROI_Arrival.pyx":26
  *     cdef double[:] roi_pulse_heights=np.zeros(num_roi_pulses)
  *     cdef int roi_processed=0
+ *     cdef double init=detector_time[0]             # <<<<<<<<<<<<<<
+ *     for i in range(s-1):
+ *         while detector_time[dd]<sync_time[i+1]:
+ */
+  __pyx_t_10 = 0;
+  __pyx_t_7 = -1;
+  if (__pyx_t_10 < 0) {
+    __pyx_t_10 += __pyx_v_detector_time.shape[0];
+    if (unlikely(__pyx_t_10 < 0)) __pyx_t_7 = 0;
+  } else if (unlikely(__pyx_t_10 >= __pyx_v_detector_time.shape[0])) __pyx_t_7 = 0;
+  if (unlikely(__pyx_t_7 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_7);
+    __PYX_ERR(0, 26, __pyx_L1_error)
+  }
+  __pyx_v_init = (*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_10 * __pyx_v_detector_time.strides[0]) )));
+
+  /* "ROI_Arrival.pyx":27
+ *     cdef int roi_processed=0
+ *     cdef double init=detector_time[0]
  *     for i in range(s-1):             # <<<<<<<<<<<<<<
  *         while detector_time[dd]<sync_time[i+1]:
  *             if roi_processed<=num_roi_pulses:
@@ -2557,8 +2618,8 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
   for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_17; __pyx_t_7+=1) {
     __pyx_v_i = __pyx_t_7;
 
-    /* "ROI_Arrival.pyx":26
- *     cdef int roi_processed=0
+    /* "ROI_Arrival.pyx":28
+ *     cdef double init=detector_time[0]
  *     for i in range(s-1):
  *         while detector_time[dd]<sync_time[i+1]:             # <<<<<<<<<<<<<<
  *             if roi_processed<=num_roi_pulses:
@@ -2573,7 +2634,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
       } else if (unlikely(__pyx_t_10 >= __pyx_v_detector_time.shape[0])) __pyx_t_8 = 0;
       if (unlikely(__pyx_t_8 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_8);
-        __PYX_ERR(0, 26, __pyx_L1_error)
+        __PYX_ERR(0, 28, __pyx_L1_error)
       }
       __pyx_t_13 = (__pyx_v_i + 1);
       __pyx_t_8 = -1;
@@ -2583,12 +2644,12 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
       } else if (unlikely(__pyx_t_13 >= __pyx_v_sync_time.shape[0])) __pyx_t_8 = 0;
       if (unlikely(__pyx_t_8 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_8);
-        __PYX_ERR(0, 26, __pyx_L1_error)
+        __PYX_ERR(0, 28, __pyx_L1_error)
       }
       __pyx_t_12 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_10 * __pyx_v_detector_time.strides[0]) ))) < (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_13 * __pyx_v_sync_time.strides[0]) )))) != 0);
       if (!__pyx_t_12) break;
 
-      /* "ROI_Arrival.pyx":27
+      /* "ROI_Arrival.pyx":29
  *     for i in range(s-1):
  *         while detector_time[dd]<sync_time[i+1]:
  *             if roi_processed<=num_roi_pulses:             # <<<<<<<<<<<<<<
@@ -2598,12 +2659,12 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
       __pyx_t_12 = ((__pyx_v_roi_processed <= __pyx_v_num_roi_pulses) != 0);
       if (__pyx_t_12) {
 
-        /* "ROI_Arrival.pyx":28
+        /* "ROI_Arrival.pyx":30
  *         while detector_time[dd]<sync_time[i+1]:
  *             if roi_processed<=num_roi_pulses:
  *                 if calibrated_pulse[dd]>=lower and calibrated_pulse[dd]<=upper:             # <<<<<<<<<<<<<<
  *                     roi_pulse_arrival[roi_processed]=detector_time[dd]-sync_time[i]
- *                     roi_pulse_heights[roi_processed]=calibrated_pulse[dd]
+ *                     roi_arrival_raw[roi_processed]=detector_time[dd]-init
  */
         __pyx_t_13 = __pyx_v_dd;
         __pyx_t_8 = -1;
@@ -2613,7 +2674,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
         } else if (unlikely(__pyx_t_13 >= __pyx_v_calibrated_pulse.shape[0])) __pyx_t_8 = 0;
         if (unlikely(__pyx_t_8 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_8);
-          __PYX_ERR(0, 28, __pyx_L1_error)
+          __PYX_ERR(0, 30, __pyx_L1_error)
         }
         __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_calibrated_pulse.data + __pyx_t_13 * __pyx_v_calibrated_pulse.strides[0]) ))) >= __pyx_v_lower) != 0);
         if (__pyx_t_15) {
@@ -2629,19 +2690,19 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
         } else if (unlikely(__pyx_t_13 >= __pyx_v_calibrated_pulse.shape[0])) __pyx_t_8 = 0;
         if (unlikely(__pyx_t_8 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_8);
-          __PYX_ERR(0, 28, __pyx_L1_error)
+          __PYX_ERR(0, 30, __pyx_L1_error)
         }
         __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_calibrated_pulse.data + __pyx_t_13 * __pyx_v_calibrated_pulse.strides[0]) ))) <= __pyx_v_upper) != 0);
         __pyx_t_12 = __pyx_t_15;
         __pyx_L17_bool_binop_done:;
         if (__pyx_t_12) {
 
-          /* "ROI_Arrival.pyx":29
+          /* "ROI_Arrival.pyx":31
  *             if roi_processed<=num_roi_pulses:
  *                 if calibrated_pulse[dd]>=lower and calibrated_pulse[dd]<=upper:
  *                     roi_pulse_arrival[roi_processed]=detector_time[dd]-sync_time[i]             # <<<<<<<<<<<<<<
+ *                     roi_arrival_raw[roi_processed]=detector_time[dd]-init
  *                     roi_pulse_heights[roi_processed]=calibrated_pulse[dd]
- *                     roi_processed+=1
  */
           __pyx_t_13 = __pyx_v_dd;
           __pyx_t_8 = -1;
@@ -2651,7 +2712,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
           } else if (unlikely(__pyx_t_13 >= __pyx_v_detector_time.shape[0])) __pyx_t_8 = 0;
           if (unlikely(__pyx_t_8 != -1)) {
             __Pyx_RaiseBufferIndexError(__pyx_t_8);
-            __PYX_ERR(0, 29, __pyx_L1_error)
+            __PYX_ERR(0, 31, __pyx_L1_error)
           }
           __pyx_t_10 = __pyx_v_i;
           __pyx_t_8 = -1;
@@ -2661,7 +2722,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
           } else if (unlikely(__pyx_t_10 >= __pyx_v_sync_time.shape[0])) __pyx_t_8 = 0;
           if (unlikely(__pyx_t_8 != -1)) {
             __Pyx_RaiseBufferIndexError(__pyx_t_8);
-            __PYX_ERR(0, 29, __pyx_L1_error)
+            __PYX_ERR(0, 31, __pyx_L1_error)
           }
           __pyx_t_14 = __pyx_v_roi_processed;
           __pyx_t_8 = -1;
@@ -2671,13 +2732,42 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
           } else if (unlikely(__pyx_t_14 >= __pyx_v_roi_pulse_arrival.shape[0])) __pyx_t_8 = 0;
           if (unlikely(__pyx_t_8 != -1)) {
             __Pyx_RaiseBufferIndexError(__pyx_t_8);
-            __PYX_ERR(0, 29, __pyx_L1_error)
+            __PYX_ERR(0, 31, __pyx_L1_error)
           }
           *((double *) ( /* dim=0 */ (__pyx_v_roi_pulse_arrival.data + __pyx_t_14 * __pyx_v_roi_pulse_arrival.strides[0]) )) = ((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_13 * __pyx_v_detector_time.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_10 * __pyx_v_sync_time.strides[0]) ))));
 
-          /* "ROI_Arrival.pyx":30
+          /* "ROI_Arrival.pyx":32
  *                 if calibrated_pulse[dd]>=lower and calibrated_pulse[dd]<=upper:
  *                     roi_pulse_arrival[roi_processed]=detector_time[dd]-sync_time[i]
+ *                     roi_arrival_raw[roi_processed]=detector_time[dd]-init             # <<<<<<<<<<<<<<
+ *                     roi_pulse_heights[roi_processed]=calibrated_pulse[dd]
+ *                     roi_processed+=1
+ */
+          __pyx_t_10 = __pyx_v_dd;
+          __pyx_t_8 = -1;
+          if (__pyx_t_10 < 0) {
+            __pyx_t_10 += __pyx_v_detector_time.shape[0];
+            if (unlikely(__pyx_t_10 < 0)) __pyx_t_8 = 0;
+          } else if (unlikely(__pyx_t_10 >= __pyx_v_detector_time.shape[0])) __pyx_t_8 = 0;
+          if (unlikely(__pyx_t_8 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_8);
+            __PYX_ERR(0, 32, __pyx_L1_error)
+          }
+          __pyx_t_13 = __pyx_v_roi_processed;
+          __pyx_t_8 = -1;
+          if (__pyx_t_13 < 0) {
+            __pyx_t_13 += __pyx_v_roi_arrival_raw.shape[0];
+            if (unlikely(__pyx_t_13 < 0)) __pyx_t_8 = 0;
+          } else if (unlikely(__pyx_t_13 >= __pyx_v_roi_arrival_raw.shape[0])) __pyx_t_8 = 0;
+          if (unlikely(__pyx_t_8 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_8);
+            __PYX_ERR(0, 32, __pyx_L1_error)
+          }
+          *((double *) ( /* dim=0 */ (__pyx_v_roi_arrival_raw.data + __pyx_t_13 * __pyx_v_roi_arrival_raw.strides[0]) )) = ((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_10 * __pyx_v_detector_time.strides[0]) ))) - __pyx_v_init);
+
+          /* "ROI_Arrival.pyx":33
+ *                     roi_pulse_arrival[roi_processed]=detector_time[dd]-sync_time[i]
+ *                     roi_arrival_raw[roi_processed]=detector_time[dd]-init
  *                     roi_pulse_heights[roi_processed]=calibrated_pulse[dd]             # <<<<<<<<<<<<<<
  *                     roi_processed+=1
  *                 dd+=1
@@ -2690,7 +2780,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
           } else if (unlikely(__pyx_t_10 >= __pyx_v_calibrated_pulse.shape[0])) __pyx_t_8 = 0;
           if (unlikely(__pyx_t_8 != -1)) {
             __Pyx_RaiseBufferIndexError(__pyx_t_8);
-            __PYX_ERR(0, 30, __pyx_L1_error)
+            __PYX_ERR(0, 33, __pyx_L1_error)
           }
           __pyx_t_13 = __pyx_v_roi_processed;
           __pyx_t_8 = -1;
@@ -2700,12 +2790,12 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
           } else if (unlikely(__pyx_t_13 >= __pyx_v_roi_pulse_heights.shape[0])) __pyx_t_8 = 0;
           if (unlikely(__pyx_t_8 != -1)) {
             __Pyx_RaiseBufferIndexError(__pyx_t_8);
-            __PYX_ERR(0, 30, __pyx_L1_error)
+            __PYX_ERR(0, 33, __pyx_L1_error)
           }
           *((double *) ( /* dim=0 */ (__pyx_v_roi_pulse_heights.data + __pyx_t_13 * __pyx_v_roi_pulse_heights.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_calibrated_pulse.data + __pyx_t_10 * __pyx_v_calibrated_pulse.strides[0]) )));
 
-          /* "ROI_Arrival.pyx":31
- *                     roi_pulse_arrival[roi_processed]=detector_time[dd]-sync_time[i]
+          /* "ROI_Arrival.pyx":34
+ *                     roi_arrival_raw[roi_processed]=detector_time[dd]-init
  *                     roi_pulse_heights[roi_processed]=calibrated_pulse[dd]
  *                     roi_processed+=1             # <<<<<<<<<<<<<<
  *                 dd+=1
@@ -2713,16 +2803,16 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
  */
           __pyx_v_roi_processed = (__pyx_v_roi_processed + 1);
 
-          /* "ROI_Arrival.pyx":28
+          /* "ROI_Arrival.pyx":30
  *         while detector_time[dd]<sync_time[i+1]:
  *             if roi_processed<=num_roi_pulses:
  *                 if calibrated_pulse[dd]>=lower and calibrated_pulse[dd]<=upper:             # <<<<<<<<<<<<<<
  *                     roi_pulse_arrival[roi_processed]=detector_time[dd]-sync_time[i]
- *                     roi_pulse_heights[roi_processed]=calibrated_pulse[dd]
+ *                     roi_arrival_raw[roi_processed]=detector_time[dd]-init
  */
         }
 
-        /* "ROI_Arrival.pyx":32
+        /* "ROI_Arrival.pyx":35
  *                     roi_pulse_heights[roi_processed]=calibrated_pulse[dd]
  *                     roi_processed+=1
  *                 dd+=1             # <<<<<<<<<<<<<<
@@ -2731,7 +2821,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
  */
         __pyx_v_dd = (__pyx_v_dd + 1);
 
-        /* "ROI_Arrival.pyx":27
+        /* "ROI_Arrival.pyx":29
  *     for i in range(s-1):
  *         while detector_time[dd]<sync_time[i+1]:
  *             if roi_processed<=num_roi_pulses:             # <<<<<<<<<<<<<<
@@ -2741,11 +2831,11 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
         goto __pyx_L15;
       }
 
-      /* "ROI_Arrival.pyx":34
+      /* "ROI_Arrival.pyx":37
  *                 dd+=1
  *             else:
  *                 break             # <<<<<<<<<<<<<<
- *     return roi_pulse_arrival, roi_pulse_heights
+ *     return roi_pulse_arrival, roi_pulse_heights,roi_arrival_raw
  * 
  */
       /*else*/ {
@@ -2756,28 +2846,33 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
     __pyx_L14_break:;
   }
 
-  /* "ROI_Arrival.pyx":35
+  /* "ROI_Arrival.pyx":38
  *             else:
  *                 break
- *     return roi_pulse_arrival, roi_pulse_heights             # <<<<<<<<<<<<<<
+ *     return roi_pulse_arrival, roi_pulse_heights,roi_arrival_raw             # <<<<<<<<<<<<<<
  * 
  * def ROI_Location(double[:] times, double[:] bins, int b,int s):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_roi_pulse_arrival, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_roi_pulse_arrival, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_roi_pulse_heights, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 35, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_roi_pulse_heights, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_roi_arrival_raw, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_4);
+  PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_t_4);
   __pyx_t_3 = 0;
-  __pyx_t_4 = 0;
-  __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
+  __pyx_t_4 = 0;
+  __pyx_r = __pyx_t_5;
+  __pyx_t_5 = 0;
   goto __pyx_L0;
 
   /* "ROI_Arrival.pyx":3
@@ -2800,6 +2895,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_calibrated_pulse, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_roi_pulse_arrival, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_roi_arrival_raw, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_roi_pulse_heights, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_sync_time, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_detector_time, 1);
@@ -2810,8 +2906,8 @@ static PyObject *__pyx_pf_11ROI_Arrival_ROI_Arrival(CYTHON_UNUSED PyObject *__py
   return __pyx_r;
 }
 
-/* "ROI_Arrival.pyx":37
- *     return roi_pulse_arrival, roi_pulse_heights
+/* "ROI_Arrival.pyx":40
+ *     return roi_pulse_arrival, roi_pulse_heights,roi_arrival_raw
  * 
  * def ROI_Location(double[:] times, double[:] bins, int b,int s):             # <<<<<<<<<<<<<<
  *     cdef double[:] output=np.zeros(b)
@@ -2859,23 +2955,23 @@ static PyObject *__pyx_pw_11ROI_Arrival_3ROI_Location(PyObject *__pyx_self, PyOb
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bins)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("ROI_Location", 1, 4, 4, 1); __PYX_ERR(0, 37, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("ROI_Location", 1, 4, 4, 1); __PYX_ERR(0, 40, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_b)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("ROI_Location", 1, 4, 4, 2); __PYX_ERR(0, 37, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("ROI_Location", 1, 4, 4, 2); __PYX_ERR(0, 40, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_s)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("ROI_Location", 1, 4, 4, 3); __PYX_ERR(0, 37, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("ROI_Location", 1, 4, 4, 3); __PYX_ERR(0, 40, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "ROI_Location") < 0)) __PYX_ERR(0, 37, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "ROI_Location") < 0)) __PYX_ERR(0, 40, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -2885,14 +2981,14 @@ static PyObject *__pyx_pw_11ROI_Arrival_3ROI_Location(PyObject *__pyx_self, PyOb
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_times = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_times.memview)) __PYX_ERR(0, 37, __pyx_L3_error)
-    __pyx_v_bins = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_bins.memview)) __PYX_ERR(0, 37, __pyx_L3_error)
-    __pyx_v_b = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_b == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 37, __pyx_L3_error)
-    __pyx_v_s = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_s == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 37, __pyx_L3_error)
+    __pyx_v_times = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_times.memview)) __PYX_ERR(0, 40, __pyx_L3_error)
+    __pyx_v_bins = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_bins.memview)) __PYX_ERR(0, 40, __pyx_L3_error)
+    __pyx_v_b = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_b == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 40, __pyx_L3_error)
+    __pyx_v_s = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_s == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 40, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("ROI_Location", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 37, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("ROI_Location", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 40, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("ROI_Arrival.ROI_Location", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2932,19 +3028,19 @@ static PyObject *__pyx_pf_11ROI_Arrival_2ROI_Location(CYTHON_UNUSED PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("ROI_Location", 0);
 
-  /* "ROI_Arrival.pyx":38
+  /* "ROI_Arrival.pyx":41
  * 
  * def ROI_Location(double[:] times, double[:] bins, int b,int s):
  *     cdef double[:] output=np.zeros(b)             # <<<<<<<<<<<<<<
  *     cdef int i,j
  *     for i in range(s):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_b); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_b); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -2959,16 +3055,16 @@ static PyObject *__pyx_pf_11ROI_Arrival_2ROI_Location(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_output = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "ROI_Arrival.pyx":40
+  /* "ROI_Arrival.pyx":43
  *     cdef double[:] output=np.zeros(b)
  *     cdef int i,j
  *     for i in range(s):             # <<<<<<<<<<<<<<
@@ -2980,7 +3076,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_2ROI_Location(CYTHON_UNUSED PyObject *__
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "ROI_Arrival.pyx":41
+    /* "ROI_Arrival.pyx":44
  *     cdef int i,j
  *     for i in range(s):
  *         for j in range(b-1):             # <<<<<<<<<<<<<<
@@ -2992,7 +3088,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_2ROI_Location(CYTHON_UNUSED PyObject *__
     for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
       __pyx_v_j = __pyx_t_11;
 
-      /* "ROI_Arrival.pyx":42
+      /* "ROI_Arrival.pyx":45
  *     for i in range(s):
  *         for j in range(b-1):
  *             if times[i]>=bins[j] and times[i]<bins[j+1]:             # <<<<<<<<<<<<<<
@@ -3007,7 +3103,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_2ROI_Location(CYTHON_UNUSED PyObject *__
       } else if (unlikely(__pyx_t_13 >= __pyx_v_times.shape[0])) __pyx_t_14 = 0;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 42, __pyx_L1_error)
+        __PYX_ERR(0, 45, __pyx_L1_error)
       }
       __pyx_t_15 = __pyx_v_j;
       __pyx_t_14 = -1;
@@ -3017,7 +3113,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_2ROI_Location(CYTHON_UNUSED PyObject *__
       } else if (unlikely(__pyx_t_15 >= __pyx_v_bins.shape[0])) __pyx_t_14 = 0;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 42, __pyx_L1_error)
+        __PYX_ERR(0, 45, __pyx_L1_error)
       }
       __pyx_t_16 = (((*((double *) ( /* dim=0 */ (__pyx_v_times.data + __pyx_t_13 * __pyx_v_times.strides[0]) ))) >= (*((double *) ( /* dim=0 */ (__pyx_v_bins.data + __pyx_t_15 * __pyx_v_bins.strides[0]) )))) != 0);
       if (__pyx_t_16) {
@@ -3033,7 +3129,7 @@ static PyObject *__pyx_pf_11ROI_Arrival_2ROI_Location(CYTHON_UNUSED PyObject *__
       } else if (unlikely(__pyx_t_15 >= __pyx_v_times.shape[0])) __pyx_t_14 = 0;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 42, __pyx_L1_error)
+        __PYX_ERR(0, 45, __pyx_L1_error)
       }
       __pyx_t_13 = (__pyx_v_j + 1);
       __pyx_t_14 = -1;
@@ -3043,14 +3139,14 @@ static PyObject *__pyx_pf_11ROI_Arrival_2ROI_Location(CYTHON_UNUSED PyObject *__
       } else if (unlikely(__pyx_t_13 >= __pyx_v_bins.shape[0])) __pyx_t_14 = 0;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 42, __pyx_L1_error)
+        __PYX_ERR(0, 45, __pyx_L1_error)
       }
       __pyx_t_16 = (((*((double *) ( /* dim=0 */ (__pyx_v_times.data + __pyx_t_15 * __pyx_v_times.strides[0]) ))) < (*((double *) ( /* dim=0 */ (__pyx_v_bins.data + __pyx_t_13 * __pyx_v_bins.strides[0]) )))) != 0);
       __pyx_t_12 = __pyx_t_16;
       __pyx_L8_bool_binop_done:;
       if (__pyx_t_12) {
 
-        /* "ROI_Arrival.pyx":43
+        /* "ROI_Arrival.pyx":46
  *         for j in range(b-1):
  *             if times[i]>=bins[j] and times[i]<bins[j+1]:
  *                 output[j]+=1             # <<<<<<<<<<<<<<
@@ -3065,11 +3161,11 @@ static PyObject *__pyx_pf_11ROI_Arrival_2ROI_Location(CYTHON_UNUSED PyObject *__
         } else if (unlikely(__pyx_t_13 >= __pyx_v_output.shape[0])) __pyx_t_14 = 0;
         if (unlikely(__pyx_t_14 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_14);
-          __PYX_ERR(0, 43, __pyx_L1_error)
+          __PYX_ERR(0, 46, __pyx_L1_error)
         }
         *((double *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_13 * __pyx_v_output.strides[0]) )) += 1.0;
 
-        /* "ROI_Arrival.pyx":42
+        /* "ROI_Arrival.pyx":45
  *     for i in range(s):
  *         for j in range(b-1):
  *             if times[i]>=bins[j] and times[i]<bins[j+1]:             # <<<<<<<<<<<<<<
@@ -3080,20 +3176,22 @@ static PyObject *__pyx_pf_11ROI_Arrival_2ROI_Location(CYTHON_UNUSED PyObject *__
     }
   }
 
-  /* "ROI_Arrival.pyx":45
+  /* "ROI_Arrival.pyx":48
  *                 output[j]+=1
  * 
  *     return output             # <<<<<<<<<<<<<<
+ * 
+ * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_output, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_output, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "ROI_Arrival.pyx":37
- *     return roi_pulse_arrival, roi_pulse_heights
+  /* "ROI_Arrival.pyx":40
+ *     return roi_pulse_arrival, roi_pulse_heights,roi_arrival_raw
  * 
  * def ROI_Location(double[:] times, double[:] bins, int b,int s):             # <<<<<<<<<<<<<<
  *     cdef double[:] output=np.zeros(b)
@@ -16952,6 +17050,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_i, __pyx_k_i, sizeof(__pyx_k_i), 0, 0, 1, 1},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
+  {&__pyx_n_s_init, __pyx_k_init, sizeof(__pyx_k_init), 0, 0, 1, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
   {&__pyx_n_s_j, __pyx_k_j, sizeof(__pyx_k_j), 0, 0, 1, 1},
@@ -16985,6 +17084,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_reduce, __pyx_k_reduce, sizeof(__pyx_k_reduce), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
+  {&__pyx_n_s_roi_arrival_raw, __pyx_k_roi_arrival_raw, sizeof(__pyx_k_roi_arrival_raw), 0, 0, 1, 1},
   {&__pyx_n_s_roi_processed, __pyx_k_roi_processed, sizeof(__pyx_k_roi_processed), 0, 0, 1, 1},
   {&__pyx_n_s_roi_pulse_arrival, __pyx_k_roi_pulse_arrival, sizeof(__pyx_k_roi_pulse_arrival), 0, 0, 1, 1},
   {&__pyx_n_s_roi_pulse_heights, __pyx_k_roi_pulse_heights, sizeof(__pyx_k_roi_pulse_heights), 0, 0, 1, 1},
@@ -17229,22 +17329,22 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *                double[:] pulse_height, int num_pulses,
  *                double lower, double upper, double[:] calibration):
  */
-  __pyx_tuple__19 = PyTuple_Pack(17, __pyx_n_s_sync_time, __pyx_n_s_detector_time, __pyx_n_s_s, __pyx_n_s_pulse_height, __pyx_n_s_num_pulses, __pyx_n_s_lower, __pyx_n_s_upper, __pyx_n_s_calibration, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_dd, __pyx_n_s_num_roi_pulses, __pyx_n_s_calib_len, __pyx_n_s_calibrated_pulse, __pyx_n_s_roi_pulse_arrival, __pyx_n_s_roi_pulse_heights, __pyx_n_s_roi_processed); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 3, __pyx_L1_error)
+  __pyx_tuple__19 = PyTuple_Pack(19, __pyx_n_s_sync_time, __pyx_n_s_detector_time, __pyx_n_s_s, __pyx_n_s_pulse_height, __pyx_n_s_num_pulses, __pyx_n_s_lower, __pyx_n_s_upper, __pyx_n_s_calibration, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_dd, __pyx_n_s_num_roi_pulses, __pyx_n_s_calib_len, __pyx_n_s_calibrated_pulse, __pyx_n_s_roi_pulse_arrival, __pyx_n_s_roi_arrival_raw, __pyx_n_s_roi_pulse_heights, __pyx_n_s_roi_processed, __pyx_n_s_init); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
-  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(8, 0, 17, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ROI_Arrival_pyx, __pyx_n_s_ROI_Arrival, 3, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 3, __pyx_L1_error)
+  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(8, 0, 19, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ROI_Arrival_pyx, __pyx_n_s_ROI_Arrival, 3, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 3, __pyx_L1_error)
 
-  /* "ROI_Arrival.pyx":37
- *     return roi_pulse_arrival, roi_pulse_heights
+  /* "ROI_Arrival.pyx":40
+ *     return roi_pulse_arrival, roi_pulse_heights,roi_arrival_raw
  * 
  * def ROI_Location(double[:] times, double[:] bins, int b,int s):             # <<<<<<<<<<<<<<
  *     cdef double[:] output=np.zeros(b)
  *     cdef int i,j
  */
-  __pyx_tuple__21 = PyTuple_Pack(7, __pyx_n_s_times, __pyx_n_s_bins, __pyx_n_s_b, __pyx_n_s_s, __pyx_n_s_output, __pyx_n_s_i, __pyx_n_s_j); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_tuple__21 = PyTuple_Pack(7, __pyx_n_s_times, __pyx_n_s_bins, __pyx_n_s_b, __pyx_n_s_s, __pyx_n_s_output, __pyx_n_s_i, __pyx_n_s_j); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
-  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(4, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ROI_Arrival_pyx, __pyx_n_s_ROI_Location, 37, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(4, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ROI_Arrival_pyx, __pyx_n_s_ROI_Location, 40, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 40, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -17679,16 +17779,16 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_ROI_Arrival, __pyx_t_1) < 0) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "ROI_Arrival.pyx":37
- *     return roi_pulse_arrival, roi_pulse_heights
+  /* "ROI_Arrival.pyx":40
+ *     return roi_pulse_arrival, roi_pulse_heights,roi_arrival_raw
  * 
  * def ROI_Location(double[:] times, double[:] bins, int b,int s):             # <<<<<<<<<<<<<<
  *     cdef double[:] output=np.zeros(b)
  *     cdef int i,j
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11ROI_Arrival_3ROI_Location, NULL, __pyx_n_s_ROI_Arrival); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11ROI_Arrival_3ROI_Location, NULL, __pyx_n_s_ROI_Arrival); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ROI_Location, __pyx_t_1) < 0) __PYX_ERR(0, 37, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ROI_Location, __pyx_t_1) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "ROI_Arrival.pyx":1

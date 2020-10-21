@@ -1,25 +1,35 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
 class FAR_MDM():
     def __init__(self,fore_cts,back_cts,FAR=1):
-        #first genrate a range of counts to consider
-        self.counts=np.linspace(0,75,76)
+        # first genrate a range of counts to consider
+        self.counts=np.linspace(0,6*fore_cts,6*fore_cts+1)
         self.far=FAR
         pdf_fore,pdf_back=self.generate_pdf(fore_cts,back_cts)
         cdf_fore,cdf_back=self.generate_cdf(pdf_fore,pdf_back)
-#        detection_probability=1-cdf_fore[self.find_CI(FAR,cdf_back)]
-#        print(detection_probability)
+        # self.detection_probability(FAR,cdf_back, cdf_fore)
+        self.FAR=FAR
+        self.cdf_back=cdf_back
+        self.cdf_fore=cdf_fore
+        self.pdf_fore,self.pdf_back=pdf_fore,pdf_back
         
     def generate_pdf(self,fore,back):
         bkg=[]
         fgd=[]
         for i in self.counts:
-            fgd.append(fore**i*np.exp(-fore)/np.math.factorial(i))
-            bkg.append(back**i*np.exp(-back)/np.math.factorial(i))
-            
-        self.generate_plot([self.counts,self.counts],[fgd,bkg],
-                           ['Foreground','Background'],'','Counts',
-                           'Probability')
+            if fore<=20:
+                fgd.append(fore**i*np.exp(-fore)/np.math.factorial(i))
+                bkg.append(back**i*np.exp(-back)/np.math.factorial(i))
+        if fore>20:
+            fgd=self.gaussian_distribution(fore, np.sqrt(fore))
+            bkg=self.gaussian_distribution(back, np.sqrt(back))
+        label_p=['Mean Foreground: {}'.format(fore),[fore+.1*fore,max(fgd)],
+                 'Mean Background: {}'.format(back),[back+.1*back,max(bkg)]]
+        # self.generate_plot([self.counts,self.counts],[fgd,bkg],
+        #                     ['Foreground','Background'],'','Counts',
+        #                     'Probability',label_points=label_p)
         return fgd,bkg
     
     def generate_cdf(self,fore,back):
@@ -29,9 +39,9 @@ class FAR_MDM():
             fore1.append(np.trapz(fore[0:i]))
             back1.append(np.trapz(back[0:i]))
         ind=self.find_CI(self.far,back1)
-        self.generate_plot([self.counts,self.counts],[fore1,back1],
-                           ['Foreground','Background'],'','Counts',
-                           'Probability',2,[self.counts[ind]])
+        # self.generate_plot([self.counts,self.counts],[fore1,back1],
+        #                     ['Foreground','Background'],'','Counts',
+        #                     'Probability',2,[self.counts[ind]])
         return fore1, back1
     
     def find_CI(self,far,back):
@@ -44,31 +54,58 @@ class FAR_MDM():
         return ind
         
     def generate_plot(self,xs,ys,labels,title,xlabel,ylabel,f_num=1,
-                      vert_lines=None):
+                      vert_lines=None,label_points=None):
         plt.figure(f_num)
         for i in range(len(xs)):
             plt.plot(xs[i],ys[i],label=labels[i])
         plt.ylabel(ylabel)
         plt.xlabel(xlabel)
         plt.title(title)
-        plt.xlim(0,75)
 
         if vert_lines!=None:
             for j in vert_lines:
-                plt.axvline(j,label='Threshold',color='r')        
+                plt.axvline(j,label='Threshold',color='r')
+        if label_points!=None:
+            #foreground
+            plt.annotate(label_points[0],label_points[1])
+            plt.annotate(label_points[2],label_points[3])
         plt.legend()
         plt.show()
         
-    def find_MDM(self,FNR,back,detection_threshold):
-        '''Used to find the false negative rate from the average counts'''
-        false_negative_thresh=back
-        fore_mdm=back
-        while false_negative_thresh<detection_threshold:
-            mdmpdf,b=self.generate_pdf(fore_mdm,1) #generate the pdf
-            mdmcdf,bk=self.generate_cdf(mdmpdf,b)
-            
+    def gaussian_distribution(self,mu,sigma):
+        '''Generatee a Probability density function
+        '''
+        # array=np.linspace(mu-6*sigma,mu+6*sigma,1000)
+        pdf=[1/np.sqrt(2*np.pi*sigma**2)*np.exp(-(i-mu)**2/(2*sigma**2)) \
+             for i in self.counts]
+        # self.generate_plot([array], [pdf], [''], 'title', 'xlabel', 'ylabel')
+        return pdf
+    
+    def detection_probability(self):
+        detection_probability=1-self.cdf_fore[self.find_CI(self.FAR,self.cdf_back)]
+        return detection_probability
+        
 if __name__=="__main__":
-    a=FAR_MDM(25,14)
+    # a=FAR_MDM(75,37)
+    # print(a.detection_probability())
+    fig, ax = plt.subplots()
+    xdata, ydata = [], []
+    ln, = plt.plot([], [])
+    def init():
+        ax.set_xlim(0, 1000)
+        ax.set_ylim(0, .1)
+        return ln,
+
+    def update(frame):
+        a=FAR_MDM(frame,frame/3)
+        xdata=a.counts
+        ydata=a.pdf_fore
+        ln.set_data(xdata, ydata)
+        return ln,
+    
+    ani = FuncAnimation(fig, update, frames=100,
+                    init_func=init, blit=True)
+    plt.show()
     
         
         

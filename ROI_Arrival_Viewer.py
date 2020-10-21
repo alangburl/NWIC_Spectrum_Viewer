@@ -43,6 +43,10 @@ class ROI_Viewer(QMainWindow):
         self.save_file.triggered.connect(self.save_spectrum)
         self.save_file.setShortcut('CTRL+S')
         self.save_file.setEnabled(False)
+        
+        # self.save_roi=QAction('&Save ROI')
+        # self.save_roi.triggered.connect(self.save_roi_csv)
+        # self.save_roi.setEnabled(True)
         self.menuFile.addActions([self.save_file])
         
     def geometry(self):
@@ -135,11 +139,12 @@ class ROI_Viewer(QMainWindow):
 
     def process(self):
         self.save_file.setEnabled(True)
+        # self.save_roi.setEnabled(True)
         s1=time.time()
         delt=(self.sync_time[2]-self.sync_time[1])
         self.lower=float(self.lower_text.text())
         self.upper=float(self.upper_text.text())
-        self.arrival,self.height=ROI_Arrival(self.sync_time,self.list_time,
+        self.arrival,self.height,self.raw=ROI_Arrival(self.sync_time,self.list_time,
                                              self.num_sync,self.list_channel,
                                              self.num_pulses,self.lower,
                                              self.upper,self.calibration)
@@ -188,3 +193,15 @@ class ROI_Viewer(QMainWindow):
             for i in range(len(self.bins)):
                 f.write('{:.6f},{}\n'.format(self.bins[i],self.output[i]))
             f.close()
+            
+    # def save_roi_csv(self):
+    #     name,ok=QFileDialog.getSaveFileName(self,'Safe File Name','',
+    #                           'Comma Seperated File (*.csv)')
+    #     if ok:
+    #         f=open(name,'w')
+    #         f.write('Pulse_Height(MeV),Time(s)\n')
+    #         print(len(self.height))
+    #         for i in range(len(self.height)):
+    #             f.write('{:.3f},{:.3f}\n'.format(self.height[i],self.raw[i]*1e-6))
+    #         f.close()
+    #         print('All finished')

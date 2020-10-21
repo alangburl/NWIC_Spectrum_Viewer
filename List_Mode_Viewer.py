@@ -3,7 +3,7 @@ import Conversion
 from Arrival_Timing import Arrival_Spread
 from ROI_Arrival import ROI_Arrival,ROI_Location
 from ROI_Arrival_Viewer import ROI_Viewer
-
+import Timing
 #prefined imports
 import sys,time,winsound
 import numpy as np
@@ -46,6 +46,9 @@ class List_Mode_Viewer(QMainWindow):
         self.save_file.triggered.connect(self.save_spectrum)
         self.save_file.setShortcut('CTRL+S')
         self.save_file.setEnabled(False)
+        self.save_roi=QAction('&Save ROI')
+        self.save_roi.triggered.connect(self.save_roi_csv)
+        self.save_roi.setEnabled(False)
         
         self.menuView=self.menuBar().addMenu('&View')
         self.view_pop=QAction('&Show Tools')
@@ -65,7 +68,7 @@ class List_Mode_Viewer(QMainWindow):
         
         self.menuView.addActions([self.view_pop,self.view_all,self.view_variation,
                                   self.view_roi_arrive])
-        self.menuFile.addActions([self.load_new,self.save_file])
+        self.menuFile.addActions([self.load_new,self.save_file,self.save_roi])
         
     def geometry(self):        
 #        self.central_widget=QWidget()
@@ -227,6 +230,7 @@ class List_Mode_Viewer(QMainWindow):
             True
         self.setWindowTitle(self.list_filename[0])
         self.save_file.setEnabled(True)
+        self.save_roi.setEnabled(True)
         self.popup_()
         self.list_mode_processor=List_Mode()
         s=time.time()
@@ -454,6 +458,41 @@ class List_Mode_Viewer(QMainWindow):
          label='ROI of {}MeV-{}MeV'.format(self.view.lower,self.view.upper))
         self.time_ax.legend()
         self.time_canvas.draw()
+        
+    def ROI_Spectrum_Saving(self):
+        '''Saving the roi pulses and their respective timing to later perform
+        an integration to find the MDM'''
+        if not self.calibration:
+            self.calibration_browse()
+        list_time=np.asarray(self.list_time)
+        list_channel=np.asarray(self.list_channel)
+        calibration=np.asarray(self.calibration_data)
+        sync_time=np.asarray(self.sync_time)
+        lower,ok=QInputDialog.getDouble(self, 'Lower ROI', 'Lower Bound (MeV)',9.6,0,14,4)
+        upper,ok2=QInputDialog.getDouble(self, 'Upper ROI', 'Upper Bound (MeV)',10.9,0,14,4)
+        if ok and ok2:
+    #     #outputs the pulses and associated times to save and integrate to
+    #     #calculate the detection probability at integrated time windows
+            s=time.time()
+            print('Begin processing data')
+            pulses,times=Timing.ROI_Timing(sync_time,int(len(sync_time)),
+                                           list_time,list_channel, 
+                                           self.delta_time,8192,
+                                           calibration,upper,lower)
+            print('Done processing in {:.2f}s'.format(time.time()-s))
+        return pulses,times
+    
+    def save_roi_csv(self):
+        name,ok=QFileDialog.getSaveFileName(self,'Safe File Name','',
+                              'Comma Seperated File (*.csv)')
+        if ok:
+            f=open(name,'w')
+            f.write('Pulse_Height(MeV),Time(s)\n')
+            pulse,time=self.ROI_Spectrum_Saving()
+            for i in range(len(pulse)):
+                f.write('{:.3f},{:.3f}\n'.format(pulse[i],time[i]*1e-6))
+            f.close()
+            print('All finished')
             
 if __name__ =="__main__":
     app=QApplication(sys.argv)

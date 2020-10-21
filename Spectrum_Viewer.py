@@ -1,4 +1,4 @@
-
+from Detection_Probability import Detection_Probability as DT
 from Load_New import Load_New as New
 from Calibration_Window import Calibration_Window as Window
 from Save_Spe import Save_Spe
@@ -6,7 +6,10 @@ from Timing_plotter import Time_Window
 from List_Mode_Viewer import List_Mode_Viewer
 from std_calculation import net_std
 from Decay import Background_Decay as bkg
+from Animated_Gaussians import Movie_Maker as movie
+
 import matplotlib.pyplot as plt
+import numpy as np
 #prefined imports
 import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
@@ -87,14 +90,21 @@ class Viewer(QMainWindow):
         self.roi_uncertainty=QAction('&ROI Uncertainties')
         self.roi_uncertainty.triggered.connect(self.roi_count_rate_uncertainty)
         
+        self.detection_probability=QAction('&Detection Probability')
+        self.detection_probability.triggered.connect(self.detec_prob)
+        
         self.dieaway=QAction('&Analyze Die Away')
         self.dieaway.triggered.connect(self.bck_die_away)
+        
+        self.video=QAction('&Save Probability Videos')
+        self.video.triggered.connect(self.save_detec_videos)
         
         self.menuView.addActions([self.view_energies,self.change_zoom,
                                   self.view_calibration_energies,
                                   self.view_countrate,self.roi_action,
                                   self.timing_window,self.list_mode,
-                                  self.roi_uncertainty,self.dieaway])
+                                  self.roi_uncertainty,self.dieaway,
+                                  self.detection_probability,self.video])
         
     def geometry(self):
         self.open_=QDockWidget('Loaded Spectrums')
@@ -514,14 +524,84 @@ class Viewer(QMainWindow):
     def bck_die_away(self):
         #get the file 
         file_name,ok=QFileDialog.getOpenFileName(self,
-                           'Background List Mode File',"",
+                           'Background Die Away List Mode File',"",
                            'Comma Seperated File (*.csv);;Text File (*.txt)')
         
-        num_bins,ok2=QInputDialog.getInt(self,'Enter number of bins','Bins:',300,0,3600)
+        num_bins,ok2=QInputDialog.getInt(self,'Enter number of bins','Bins:',300,0,10000)
         if file_name!='' and ok and ok2:
             cts,time=bkg(file_name,num_bins).process_data()
-        plt.plot(time,cts)
+        io=max(cts[1::])
+        index=(np.abs(cts-io/2)).argmin()
+        t_12=time[index]
+        lambd=np.log(2)/t_12
+        print(lambd)
+        fit=[io*np.exp(-lambd*i) for i in time]
+        plt.plot(time[1::],cts[1::],'*')
+        # plt.plot(time[1::],fit[1::])
+        plt.ylabel('Count Rate (cps)')
+        plt.xlabel('Time (s)')
         plt.show()
+        f=open('Back_Die_Away.csv','w')
+        f.write('Time,Counts\n')
+        for i in range(len(cts)):
+            f.write('{:.5f},{:.5f}\n'.format(cts[i],time[i]))
+        f.close()
+        
+    def detec_prob(self):
+        #get the foreground and background file names and info
+        #get the file 
+        file_nameb,ok=QFileDialog.getOpenFileName(self,
+                           'Background List Mode File',"",
+                           'Comma Seperated File (*.csv);;Text File (*.txt)')
+        file_namef,ok2=QFileDialog.getOpenFileName(self,
+                           'Foreground List Mode File',"",
+                           'Comma Seperated File (*.csv);;Text File (*.txt)')
+        if ok and ok2:
+            evals=np.linspace(120,1800,181)
+            detection_probability=DT(file_namef,file_nameb,evals)
+            probs=detection_probability.probs
+            probs=[i*100 for i in probs]
+            time_detect=np.interp(99,probs,evals)
+            plt.figure(1)
+            plt.plot(evals, probs,'*')
+            plt.axvline(time_detect,label='Time to 99% detection probability: {:.2f}s'.format(time_detect))
+            plt.xlabel('Time(s)')
+            plt.ylabel('Probability (%)')
+            plt.legend()
+            # print(probs)
+            plt.show()
+            
+            #save the raw data out
+            fore_sums=detection_probability.f_sums
+            back_sums=detection_probability.b_sums
+            analysis_times=detection_probability.a_times
+            raw_name,ok3=QFileDialog.getSaveFileName(self,
+                           'Raw Data Save File Name',"",
+                           'Comma Seperated File (*.csv);;Text File (*.txt)')
+            if ok3:
+                f=open(raw_name,'w')
+                for i in range(len(fore_sums)):
+                    f.write('{},{},{},{}\n'.format(fore_sums[i],
+                                                   back_sums[i],
+                                                   analysis_times[i],
+                                                   probs[i]))
+                f.close()
+                
+    def save_detec_videos(self):
+        file_nameb,ok=QFileDialog.getOpenFileName(self,
+                       'Raw Data File',"",
+                       'Comma Seperated File (*.csv);;Text File (*.txt)')
+        file_nameg,ok1=QFileDialog.getSaveFileName(self,
+                           'Curve Save File',"",
+                           'Multimeda (*.mp4)')
+        file_namep,ok2=QFileDialog.getSaveFileName(self,
+                           'Probability Save File',"",
+                           'Multimeda (*.mp4)')     
+        
+        if ok and ok1 and ok2:
+            Movie=movie(file_nameb,file_nameg,file_namep)
+            Movie.save_gaussian()
+            Movie.save_probability()
             
 if __name__=="__main__":
     app=QApplication(sys.argv)

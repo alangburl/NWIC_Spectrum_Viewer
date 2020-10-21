@@ -1257,6 +1257,33 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObjec
 /* BufferIndexError.proto */
 static void __Pyx_RaiseBufferIndexError(int axis);
 
+/* GetTopmostException.proto */
+#if CYTHON_USE_EXC_INFO_STACK
+static _PyErr_StackItem * __Pyx_PyErr_GetTopmostException(PyThreadState *tstate);
+#endif
+
+/* PyThreadStateGet.proto */
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_PyThreadState_declare  PyThreadState *__pyx_tstate;
+#define __Pyx_PyThreadState_assign  __pyx_tstate = __Pyx_PyThreadState_Current;
+#define __Pyx_PyErr_Occurred()  __pyx_tstate->curexc_type
+#else
+#define __Pyx_PyThreadState_declare
+#define __Pyx_PyThreadState_assign
+#define __Pyx_PyErr_Occurred()  PyErr_Occurred()
+#endif
+
+/* SaveResetException.proto */
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_ExceptionSave(type, value, tb)  __Pyx__ExceptionSave(__pyx_tstate, type, value, tb)
+static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
+#define __Pyx_ExceptionReset(type, value, tb)  __Pyx__ExceptionReset(__pyx_tstate, type, value, tb)
+static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb);
+#else
+#define __Pyx_ExceptionSave(type, value, tb)   PyErr_GetExcInfo(type, value, tb)
+#define __Pyx_ExceptionReset(type, value, tb)  PyErr_SetExcInfo(type, value, tb)
+#endif
+
 /* MemviewSliceInit.proto */
 #define __Pyx_BUF_MAX_NDIMS %(BUF_MAX_NDIMS)d
 #define __Pyx_MEMVIEW_DIRECT   1
@@ -1283,22 +1310,26 @@ static CYTHON_INLINE int __pyx_sub_acquisition_count_locked(
 static CYTHON_INLINE void __Pyx_INC_MEMVIEW(__Pyx_memviewslice *, int, int);
 static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *, int, int);
 
+/* GetException.proto */
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_GetException(type, value, tb)  __Pyx__GetException(__pyx_tstate, type, value, tb)
+static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
+#else
+static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb);
+#endif
+
+/* PyIntFromDouble.proto */
+#if PY_MAJOR_VERSION < 3
+static CYTHON_INLINE PyObject* __Pyx_PyInt_FromDouble(double value);
+#else
+#define __Pyx_PyInt_FromDouble(value) PyLong_FromDouble(value)
+#endif
+
 /* ArgTypeTest.proto */
 #define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
     ((likely((Py_TYPE(obj) == type) | (none_allowed && (obj == Py_None)))) ? 1 :\
         __Pyx__ArgTypeTest(obj, type, name, exact))
 static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
-
-/* PyThreadStateGet.proto */
-#if CYTHON_FAST_THREAD_STATE
-#define __Pyx_PyThreadState_declare  PyThreadState *__pyx_tstate;
-#define __Pyx_PyThreadState_assign  __pyx_tstate = __Pyx_PyThreadState_Current;
-#define __Pyx_PyErr_Occurred()  __pyx_tstate->curexc_type
-#else
-#define __Pyx_PyThreadState_declare
-#define __Pyx_PyThreadState_assign
-#define __Pyx_PyErr_Occurred()  PyErr_Occurred()
-#endif
 
 /* PyErrFetchRestore.proto */
 #if CYTHON_FAST_THREAD_STATE
@@ -1427,30 +1458,6 @@ static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void);
 
 /* ExtTypeTest.proto */
 static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type);
-
-/* GetTopmostException.proto */
-#if CYTHON_USE_EXC_INFO_STACK
-static _PyErr_StackItem * __Pyx_PyErr_GetTopmostException(PyThreadState *tstate);
-#endif
-
-/* SaveResetException.proto */
-#if CYTHON_FAST_THREAD_STATE
-#define __Pyx_ExceptionSave(type, value, tb)  __Pyx__ExceptionSave(__pyx_tstate, type, value, tb)
-static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
-#define __Pyx_ExceptionReset(type, value, tb)  __Pyx__ExceptionReset(__pyx_tstate, type, value, tb)
-static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb);
-#else
-#define __Pyx_ExceptionSave(type, value, tb)   PyErr_GetExcInfo(type, value, tb)
-#define __Pyx_ExceptionReset(type, value, tb)  PyErr_SetExcInfo(type, value, tb)
-#endif
-
-/* GetException.proto */
-#if CYTHON_FAST_THREAD_STATE
-#define __Pyx_GetException(type, value, tb)  __Pyx__GetException(__pyx_tstate, type, value, tb)
-static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
-#else
-static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb);
-#endif
 
 /* SwapException.proto */
 #if CYTHON_FAST_THREAD_STATE
@@ -1756,6 +1763,7 @@ static PyObject *__pyx_builtin_Ellipsis;
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_IndexError;
 static const char __pyx_k_O[] = "O";
+static const char __pyx_k_a[] = "a";
 static const char __pyx_k_b[] = "b";
 static const char __pyx_k_c[] = "c";
 static const char __pyx_k_i[] = "i";
@@ -1783,10 +1791,12 @@ static const char __pyx_k_class[] = "__class__";
 static const char __pyx_k_d_loc[] = "d_loc";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
+static const char __pyx_k_lower[] = "lower";
 static const char __pyx_k_numpy[] = "numpy";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
 static const char __pyx_k_start[] = "start";
+static const char __pyx_k_upper[] = "upper";
 static const char __pyx_k_zeros[] = "zeros";
 static const char __pyx_k_Timing[] = "Timing";
 static const char __pyx_k_encode[] = "encode";
@@ -1808,20 +1818,26 @@ static const char __pyx_k_itemsize[] = "itemsize";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
 static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_TypeError[] = "TypeError";
+static const char __pyx_k_calib_len[] = "calib_len";
 static const char __pyx_k_enumerate[] = "enumerate";
 static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
+static const char __pyx_k_roi_times[] = "roi_times";
 static const char __pyx_k_split_loc[] = "split_loc";
 static const char __pyx_k_sync_time[] = "sync_time";
 static const char __pyx_k_IndexError[] = "IndexError";
+static const char __pyx_k_ROI_Timing[] = "ROI_Timing";
 static const char __pyx_k_Timing_pyx[] = "Timing.pyx";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_delta_time[] = "delta_time";
+static const char __pyx_k_num_pulses[] = "num_pulses";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
+static const char __pyx_k_roi_pulses[] = "roi_pulses";
 static const char __pyx_k_time_point[] = "time_point";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
+static const char __pyx_k_calibration[] = "calibration";
 static const char __pyx_k_num_channels[] = "num_channels";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "stringsource";
@@ -1829,6 +1845,7 @@ static const char __pyx_k_detector_time[] = "detector_time";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_channel_timing[] = "channel_timing";
+static const char __pyx_k_num_roi_pulses[] = "num_roi_pulses";
 static const char __pyx_k_region1_output[] = "region1_output";
 static const char __pyx_k_region2_output[] = "region2_output";
 static const char __pyx_k_View_MemoryView[] = "View.MemoryView";
@@ -1836,7 +1853,9 @@ static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static const char __pyx_k_pyx_PickleError[] = "__pyx_PickleError";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
+static const char __pyx_k_calibrated_pulse[] = "calibrated_pulse";
 static const char __pyx_k_pyx_unpickle_Enum[] = "__pyx_unpickle_Enum";
+static const char __pyx_k_channel_timing_roi[] = "channel_timing_roi";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_strided_and_direct[] = "<strided and direct>";
 static const char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
@@ -1881,19 +1900,25 @@ static PyObject *__pyx_kp_s_MemoryView_of_r_object;
 static PyObject *__pyx_n_b_O;
 static PyObject *__pyx_kp_s_Out_of_bounds_on_buffer_access_a;
 static PyObject *__pyx_n_s_PickleError;
+static PyObject *__pyx_n_s_ROI_Timing;
 static PyObject *__pyx_n_s_Timing;
 static PyObject *__pyx_kp_s_Timing_pyx;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_n_s_View_MemoryView;
+static PyObject *__pyx_n_s_a;
 static PyObject *__pyx_n_s_allocate_buffer;
 static PyObject *__pyx_n_s_b;
 static PyObject *__pyx_n_s_base;
 static PyObject *__pyx_n_s_bins;
 static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_u_c;
+static PyObject *__pyx_n_s_calib_len;
+static PyObject *__pyx_n_s_calibrated_pulse;
+static PyObject *__pyx_n_s_calibration;
 static PyObject *__pyx_n_s_channel_timing;
+static PyObject *__pyx_n_s_channel_timing_roi;
 static PyObject *__pyx_n_s_channels;
 static PyObject *__pyx_n_s_class;
 static PyObject *__pyx_n_s_cline_in_traceback;
@@ -1920,6 +1945,7 @@ static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
 static PyObject *__pyx_n_s_j;
+static PyObject *__pyx_n_s_lower;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_memview;
 static PyObject *__pyx_n_s_mode;
@@ -1930,6 +1956,8 @@ static PyObject *__pyx_n_s_new;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
 static PyObject *__pyx_n_s_np;
 static PyObject *__pyx_n_s_num_channels;
+static PyObject *__pyx_n_s_num_pulses;
+static PyObject *__pyx_n_s_num_roi_pulses;
 static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_n_s_obj;
 static PyObject *__pyx_n_s_output;
@@ -1949,6 +1977,8 @@ static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
 static PyObject *__pyx_n_s_region1_output;
 static PyObject *__pyx_n_s_region2_output;
+static PyObject *__pyx_n_s_roi_pulses;
+static PyObject *__pyx_n_s_roi_times;
 static PyObject *__pyx_n_s_s;
 static PyObject *__pyx_n_s_setstate;
 static PyObject *__pyx_n_s_setstate_cython;
@@ -1970,9 +2000,12 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
+static PyObject *__pyx_n_s_upper;
 static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_pf_6Timing_time_point(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sync_time, __Pyx_memviewslice __pyx_v_detector_time, int __pyx_v_s, __Pyx_memviewslice __pyx_v_bins, int __pyx_v_b); /* proto */
 static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sync_time, int __pyx_v_s, __Pyx_memviewslice __pyx_v_detector_time, __Pyx_memviewslice __pyx_v_channels, double __pyx_v_delta_time, int __pyx_v_num_channels); /* proto */
+static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sync_time, int __pyx_v_s, __Pyx_memviewslice __pyx_v_detector_time, __Pyx_memviewslice __pyx_v_channels, double __pyx_v_delta_time, int __pyx_v_num_channels); /* proto */
+static PyObject *__pyx_pf_6Timing_6ROI_Timing(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sync_time, int __pyx_v_s, __Pyx_memviewslice __pyx_v_detector_time, __Pyx_memviewslice __pyx_v_channels, double __pyx_v_delta_time, CYTHON_UNUSED int __pyx_v_num_channels, __Pyx_memviewslice __pyx_v_calibration, double __pyx_v_upper, double __pyx_v_lower); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -2044,14 +2077,18 @@ static PyObject *__pyx_tuple__18;
 static PyObject *__pyx_tuple__19;
 static PyObject *__pyx_tuple__21;
 static PyObject *__pyx_tuple__23;
-static PyObject *__pyx_tuple__24;
 static PyObject *__pyx_tuple__25;
-static PyObject *__pyx_tuple__26;
 static PyObject *__pyx_tuple__27;
 static PyObject *__pyx_tuple__28;
+static PyObject *__pyx_tuple__29;
+static PyObject *__pyx_tuple__30;
+static PyObject *__pyx_tuple__31;
+static PyObject *__pyx_tuple__32;
 static PyObject *__pyx_codeobj__20;
 static PyObject *__pyx_codeobj__22;
-static PyObject *__pyx_codeobj__29;
+static PyObject *__pyx_codeobj__24;
+static PyObject *__pyx_codeobj__26;
+static PyObject *__pyx_codeobj__33;
 /* Late includes */
 
 /* "Timing.pyx":2
@@ -2165,6 +2202,7 @@ static PyObject *__pyx_pf_6Timing_time_point(CYTHON_UNUSED PyObject *__pyx_self,
   int __pyx_v_j;
   int __pyx_v_dd;
   __Pyx_memviewslice __pyx_v_output = { 0, 0, { 0 }, { 0 }, { 0 } };
+  CYTHON_UNUSED int __pyx_v_a;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2175,15 +2213,18 @@ static PyObject *__pyx_pf_6Timing_time_point(CYTHON_UNUSED PyObject *__pyx_self,
   long __pyx_t_6;
   long __pyx_t_7;
   int __pyx_t_8;
-  Py_ssize_t __pyx_t_9;
-  int __pyx_t_10;
-  Py_ssize_t __pyx_t_11;
-  int __pyx_t_12;
-  long __pyx_t_13;
-  long __pyx_t_14;
+  PyObject *__pyx_t_9 = NULL;
+  PyObject *__pyx_t_10 = NULL;
+  PyObject *__pyx_t_11 = NULL;
+  Py_ssize_t __pyx_t_12;
+  int __pyx_t_13;
+  Py_ssize_t __pyx_t_14;
   int __pyx_t_15;
-  Py_ssize_t __pyx_t_16;
-  int __pyx_t_17;
+  long __pyx_t_16;
+  long __pyx_t_17;
+  int __pyx_t_18;
+  Py_ssize_t __pyx_t_19;
+  int __pyx_t_20;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2238,8 +2279,8 @@ static PyObject *__pyx_pf_6Timing_time_point(CYTHON_UNUSED PyObject *__pyx_self,
  *     cdef double[:] output= np.zeros(b)
  * 
  *     for i in range(s-1):             # <<<<<<<<<<<<<<
- *         while detector_time[dd]<sync_time[i+1]:
- *             for j in range(b-1):
+ *         try:
+ *             while detector_time[dd]<sync_time[i+1]:
  */
   __pyx_t_6 = (__pyx_v_s - 1);
   __pyx_t_7 = __pyx_t_6;
@@ -2249,176 +2290,260 @@ static PyObject *__pyx_pf_6Timing_time_point(CYTHON_UNUSED PyObject *__pyx_self,
     /* "Timing.pyx":9
  * 
  *     for i in range(s-1):
- *         while detector_time[dd]<sync_time[i+1]:             # <<<<<<<<<<<<<<
- *             for j in range(b-1):
- *                 if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[dd]<sync_time[i+1]:
+ *                 for j in range(b-1):
  */
-    while (1) {
-      __pyx_t_9 = __pyx_v_dd;
-      __pyx_t_10 = -1;
-      if (__pyx_t_9 < 0) {
-        __pyx_t_9 += __pyx_v_detector_time.shape[0];
-        if (unlikely(__pyx_t_9 < 0)) __pyx_t_10 = 0;
-      } else if (unlikely(__pyx_t_9 >= __pyx_v_detector_time.shape[0])) __pyx_t_10 = 0;
-      if (unlikely(__pyx_t_10 != -1)) {
-        __Pyx_RaiseBufferIndexError(__pyx_t_10);
-        __PYX_ERR(0, 9, __pyx_L1_error)
-      }
-      __pyx_t_11 = (__pyx_v_i + 1);
-      __pyx_t_10 = -1;
-      if (__pyx_t_11 < 0) {
-        __pyx_t_11 += __pyx_v_sync_time.shape[0];
-        if (unlikely(__pyx_t_11 < 0)) __pyx_t_10 = 0;
-      } else if (unlikely(__pyx_t_11 >= __pyx_v_sync_time.shape[0])) __pyx_t_10 = 0;
-      if (unlikely(__pyx_t_10 != -1)) {
-        __Pyx_RaiseBufferIndexError(__pyx_t_10);
-        __PYX_ERR(0, 9, __pyx_L1_error)
-      }
-      __pyx_t_12 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_9 * __pyx_v_detector_time.strides[0]) ))) < (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_11 * __pyx_v_sync_time.strides[0]) )))) != 0);
-      if (!__pyx_t_12) break;
+    {
+      __Pyx_PyThreadState_declare
+      __Pyx_PyThreadState_assign
+      __Pyx_ExceptionSave(&__pyx_t_9, &__pyx_t_10, &__pyx_t_11);
+      __Pyx_XGOTREF(__pyx_t_9);
+      __Pyx_XGOTREF(__pyx_t_10);
+      __Pyx_XGOTREF(__pyx_t_11);
+      /*try:*/ {
 
-      /* "Timing.pyx":10
+        /* "Timing.pyx":10
  *     for i in range(s-1):
- *         while detector_time[dd]<sync_time[i+1]:
- *             for j in range(b-1):             # <<<<<<<<<<<<<<
- *                 if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:
- *                     output[j]+=1
+ *         try:
+ *             while detector_time[dd]<sync_time[i+1]:             # <<<<<<<<<<<<<<
+ *                 for j in range(b-1):
+ *                     if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:
  */
-      __pyx_t_13 = (__pyx_v_b - 1);
-      __pyx_t_14 = __pyx_t_13;
-      for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_14; __pyx_t_10+=1) {
-        __pyx_v_j = __pyx_t_10;
-
-        /* "Timing.pyx":11
- *         while detector_time[dd]<sync_time[i+1]:
- *             for j in range(b-1):
- *                 if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:             # <<<<<<<<<<<<<<
- *                     output[j]+=1
- *             dd+=1
- */
-        __pyx_t_11 = __pyx_v_dd;
-        __pyx_t_15 = -1;
-        if (__pyx_t_11 < 0) {
-          __pyx_t_11 += __pyx_v_detector_time.shape[0];
-          if (unlikely(__pyx_t_11 < 0)) __pyx_t_15 = 0;
-        } else if (unlikely(__pyx_t_11 >= __pyx_v_detector_time.shape[0])) __pyx_t_15 = 0;
-        if (unlikely(__pyx_t_15 != -1)) {
-          __Pyx_RaiseBufferIndexError(__pyx_t_15);
-          __PYX_ERR(0, 11, __pyx_L1_error)
-        }
-        __pyx_t_9 = __pyx_v_i;
-        __pyx_t_15 = -1;
-        if (__pyx_t_9 < 0) {
-          __pyx_t_9 += __pyx_v_sync_time.shape[0];
-          if (unlikely(__pyx_t_9 < 0)) __pyx_t_15 = 0;
-        } else if (unlikely(__pyx_t_9 >= __pyx_v_sync_time.shape[0])) __pyx_t_15 = 0;
-        if (unlikely(__pyx_t_15 != -1)) {
-          __Pyx_RaiseBufferIndexError(__pyx_t_15);
-          __PYX_ERR(0, 11, __pyx_L1_error)
-        }
-        __pyx_t_16 = __pyx_v_j;
-        __pyx_t_15 = -1;
-        if (__pyx_t_16 < 0) {
-          __pyx_t_16 += __pyx_v_bins.shape[0];
-          if (unlikely(__pyx_t_16 < 0)) __pyx_t_15 = 0;
-        } else if (unlikely(__pyx_t_16 >= __pyx_v_bins.shape[0])) __pyx_t_15 = 0;
-        if (unlikely(__pyx_t_15 != -1)) {
-          __Pyx_RaiseBufferIndexError(__pyx_t_15);
-          __PYX_ERR(0, 11, __pyx_L1_error)
-        }
-        __pyx_t_17 = ((((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_11 * __pyx_v_detector_time.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_9 * __pyx_v_sync_time.strides[0]) )))) >= (*((double *) ( /* dim=0 */ (__pyx_v_bins.data + __pyx_t_16 * __pyx_v_bins.strides[0]) )))) != 0);
-        if (__pyx_t_17) {
-        } else {
-          __pyx_t_12 = __pyx_t_17;
-          goto __pyx_L10_bool_binop_done;
-        }
-        __pyx_t_16 = __pyx_v_dd;
-        __pyx_t_15 = -1;
-        if (__pyx_t_16 < 0) {
-          __pyx_t_16 += __pyx_v_detector_time.shape[0];
-          if (unlikely(__pyx_t_16 < 0)) __pyx_t_15 = 0;
-        } else if (unlikely(__pyx_t_16 >= __pyx_v_detector_time.shape[0])) __pyx_t_15 = 0;
-        if (unlikely(__pyx_t_15 != -1)) {
-          __Pyx_RaiseBufferIndexError(__pyx_t_15);
-          __PYX_ERR(0, 11, __pyx_L1_error)
-        }
-        __pyx_t_9 = __pyx_v_i;
-        __pyx_t_15 = -1;
-        if (__pyx_t_9 < 0) {
-          __pyx_t_9 += __pyx_v_sync_time.shape[0];
-          if (unlikely(__pyx_t_9 < 0)) __pyx_t_15 = 0;
-        } else if (unlikely(__pyx_t_9 >= __pyx_v_sync_time.shape[0])) __pyx_t_15 = 0;
-        if (unlikely(__pyx_t_15 != -1)) {
-          __Pyx_RaiseBufferIndexError(__pyx_t_15);
-          __PYX_ERR(0, 11, __pyx_L1_error)
-        }
-        __pyx_t_11 = (__pyx_v_j + 1);
-        __pyx_t_15 = -1;
-        if (__pyx_t_11 < 0) {
-          __pyx_t_11 += __pyx_v_bins.shape[0];
-          if (unlikely(__pyx_t_11 < 0)) __pyx_t_15 = 0;
-        } else if (unlikely(__pyx_t_11 >= __pyx_v_bins.shape[0])) __pyx_t_15 = 0;
-        if (unlikely(__pyx_t_15 != -1)) {
-          __Pyx_RaiseBufferIndexError(__pyx_t_15);
-          __PYX_ERR(0, 11, __pyx_L1_error)
-        }
-        __pyx_t_17 = ((((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_16 * __pyx_v_detector_time.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_9 * __pyx_v_sync_time.strides[0]) )))) < (*((double *) ( /* dim=0 */ (__pyx_v_bins.data + __pyx_t_11 * __pyx_v_bins.strides[0]) )))) != 0);
-        __pyx_t_12 = __pyx_t_17;
-        __pyx_L10_bool_binop_done:;
-        if (__pyx_t_12) {
-
-          /* "Timing.pyx":12
- *             for j in range(b-1):
- *                 if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:
- *                     output[j]+=1             # <<<<<<<<<<<<<<
- *             dd+=1
- * 
- */
-          __pyx_t_11 = __pyx_v_j;
-          __pyx_t_15 = -1;
-          if (__pyx_t_11 < 0) {
-            __pyx_t_11 += __pyx_v_output.shape[0];
-            if (unlikely(__pyx_t_11 < 0)) __pyx_t_15 = 0;
-          } else if (unlikely(__pyx_t_11 >= __pyx_v_output.shape[0])) __pyx_t_15 = 0;
-          if (unlikely(__pyx_t_15 != -1)) {
-            __Pyx_RaiseBufferIndexError(__pyx_t_15);
-            __PYX_ERR(0, 12, __pyx_L1_error)
+        while (1) {
+          __pyx_t_12 = __pyx_v_dd;
+          __pyx_t_13 = -1;
+          if (__pyx_t_12 < 0) {
+            __pyx_t_12 += __pyx_v_detector_time.shape[0];
+            if (unlikely(__pyx_t_12 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_12 >= __pyx_v_detector_time.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 10, __pyx_L5_error)
           }
-          *((double *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_11 * __pyx_v_output.strides[0]) )) += 1.0;
+          __pyx_t_14 = (__pyx_v_i + 1);
+          __pyx_t_13 = -1;
+          if (__pyx_t_14 < 0) {
+            __pyx_t_14 += __pyx_v_sync_time.shape[0];
+            if (unlikely(__pyx_t_14 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_14 >= __pyx_v_sync_time.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 10, __pyx_L5_error)
+          }
+          __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_12 * __pyx_v_detector_time.strides[0]) ))) < (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_14 * __pyx_v_sync_time.strides[0]) )))) != 0);
+          if (!__pyx_t_15) break;
 
           /* "Timing.pyx":11
- *         while detector_time[dd]<sync_time[i+1]:
- *             for j in range(b-1):
- *                 if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:             # <<<<<<<<<<<<<<
- *                     output[j]+=1
- *             dd+=1
+ *         try:
+ *             while detector_time[dd]<sync_time[i+1]:
+ *                 for j in range(b-1):             # <<<<<<<<<<<<<<
+ *                     if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:
+ *                         output[j]+=1
  */
-        }
-      }
+          __pyx_t_16 = (__pyx_v_b - 1);
+          __pyx_t_17 = __pyx_t_16;
+          for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_17; __pyx_t_13+=1) {
+            __pyx_v_j = __pyx_t_13;
 
-      /* "Timing.pyx":13
- *                 if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:
- *                     output[j]+=1
- *             dd+=1             # <<<<<<<<<<<<<<
+            /* "Timing.pyx":12
+ *             while detector_time[dd]<sync_time[i+1]:
+ *                 for j in range(b-1):
+ *                     if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:             # <<<<<<<<<<<<<<
+ *                         output[j]+=1
+ *                 dd+=1
+ */
+            __pyx_t_14 = __pyx_v_dd;
+            __pyx_t_18 = -1;
+            if (__pyx_t_14 < 0) {
+              __pyx_t_14 += __pyx_v_detector_time.shape[0];
+              if (unlikely(__pyx_t_14 < 0)) __pyx_t_18 = 0;
+            } else if (unlikely(__pyx_t_14 >= __pyx_v_detector_time.shape[0])) __pyx_t_18 = 0;
+            if (unlikely(__pyx_t_18 != -1)) {
+              __Pyx_RaiseBufferIndexError(__pyx_t_18);
+              __PYX_ERR(0, 12, __pyx_L5_error)
+            }
+            __pyx_t_12 = __pyx_v_i;
+            __pyx_t_18 = -1;
+            if (__pyx_t_12 < 0) {
+              __pyx_t_12 += __pyx_v_sync_time.shape[0];
+              if (unlikely(__pyx_t_12 < 0)) __pyx_t_18 = 0;
+            } else if (unlikely(__pyx_t_12 >= __pyx_v_sync_time.shape[0])) __pyx_t_18 = 0;
+            if (unlikely(__pyx_t_18 != -1)) {
+              __Pyx_RaiseBufferIndexError(__pyx_t_18);
+              __PYX_ERR(0, 12, __pyx_L5_error)
+            }
+            __pyx_t_19 = __pyx_v_j;
+            __pyx_t_18 = -1;
+            if (__pyx_t_19 < 0) {
+              __pyx_t_19 += __pyx_v_bins.shape[0];
+              if (unlikely(__pyx_t_19 < 0)) __pyx_t_18 = 0;
+            } else if (unlikely(__pyx_t_19 >= __pyx_v_bins.shape[0])) __pyx_t_18 = 0;
+            if (unlikely(__pyx_t_18 != -1)) {
+              __Pyx_RaiseBufferIndexError(__pyx_t_18);
+              __PYX_ERR(0, 12, __pyx_L5_error)
+            }
+            __pyx_t_20 = ((((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_14 * __pyx_v_detector_time.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_12 * __pyx_v_sync_time.strides[0]) )))) >= (*((double *) ( /* dim=0 */ (__pyx_v_bins.data + __pyx_t_19 * __pyx_v_bins.strides[0]) )))) != 0);
+            if (__pyx_t_20) {
+            } else {
+              __pyx_t_15 = __pyx_t_20;
+              goto __pyx_L18_bool_binop_done;
+            }
+            __pyx_t_19 = __pyx_v_dd;
+            __pyx_t_18 = -1;
+            if (__pyx_t_19 < 0) {
+              __pyx_t_19 += __pyx_v_detector_time.shape[0];
+              if (unlikely(__pyx_t_19 < 0)) __pyx_t_18 = 0;
+            } else if (unlikely(__pyx_t_19 >= __pyx_v_detector_time.shape[0])) __pyx_t_18 = 0;
+            if (unlikely(__pyx_t_18 != -1)) {
+              __Pyx_RaiseBufferIndexError(__pyx_t_18);
+              __PYX_ERR(0, 12, __pyx_L5_error)
+            }
+            __pyx_t_12 = __pyx_v_i;
+            __pyx_t_18 = -1;
+            if (__pyx_t_12 < 0) {
+              __pyx_t_12 += __pyx_v_sync_time.shape[0];
+              if (unlikely(__pyx_t_12 < 0)) __pyx_t_18 = 0;
+            } else if (unlikely(__pyx_t_12 >= __pyx_v_sync_time.shape[0])) __pyx_t_18 = 0;
+            if (unlikely(__pyx_t_18 != -1)) {
+              __Pyx_RaiseBufferIndexError(__pyx_t_18);
+              __PYX_ERR(0, 12, __pyx_L5_error)
+            }
+            __pyx_t_14 = (__pyx_v_j + 1);
+            __pyx_t_18 = -1;
+            if (__pyx_t_14 < 0) {
+              __pyx_t_14 += __pyx_v_bins.shape[0];
+              if (unlikely(__pyx_t_14 < 0)) __pyx_t_18 = 0;
+            } else if (unlikely(__pyx_t_14 >= __pyx_v_bins.shape[0])) __pyx_t_18 = 0;
+            if (unlikely(__pyx_t_18 != -1)) {
+              __Pyx_RaiseBufferIndexError(__pyx_t_18);
+              __PYX_ERR(0, 12, __pyx_L5_error)
+            }
+            __pyx_t_20 = ((((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_19 * __pyx_v_detector_time.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_12 * __pyx_v_sync_time.strides[0]) )))) < (*((double *) ( /* dim=0 */ (__pyx_v_bins.data + __pyx_t_14 * __pyx_v_bins.strides[0]) )))) != 0);
+            __pyx_t_15 = __pyx_t_20;
+            __pyx_L18_bool_binop_done:;
+            if (__pyx_t_15) {
+
+              /* "Timing.pyx":13
+ *                 for j in range(b-1):
+ *                     if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:
+ *                         output[j]+=1             # <<<<<<<<<<<<<<
+ *                 dd+=1
+ *         except:
+ */
+              __pyx_t_14 = __pyx_v_j;
+              __pyx_t_18 = -1;
+              if (__pyx_t_14 < 0) {
+                __pyx_t_14 += __pyx_v_output.shape[0];
+                if (unlikely(__pyx_t_14 < 0)) __pyx_t_18 = 0;
+              } else if (unlikely(__pyx_t_14 >= __pyx_v_output.shape[0])) __pyx_t_18 = 0;
+              if (unlikely(__pyx_t_18 != -1)) {
+                __Pyx_RaiseBufferIndexError(__pyx_t_18);
+                __PYX_ERR(0, 13, __pyx_L5_error)
+              }
+              *((double *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_14 * __pyx_v_output.strides[0]) )) += 1.0;
+
+              /* "Timing.pyx":12
+ *             while detector_time[dd]<sync_time[i+1]:
+ *                 for j in range(b-1):
+ *                     if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:             # <<<<<<<<<<<<<<
+ *                         output[j]+=1
+ *                 dd+=1
+ */
+            }
+          }
+
+          /* "Timing.pyx":14
+ *                     if detector_time[dd]-sync_time[i]>=bins[j] and detector_time[dd]-sync_time[i]<bins[j+1]:
+ *                         output[j]+=1
+ *                 dd+=1             # <<<<<<<<<<<<<<
+ *         except:
+ *             a=True
+ */
+          __pyx_v_dd = (__pyx_v_dd + 1);
+        }
+
+        /* "Timing.pyx":9
+ * 
+ *     for i in range(s-1):
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[dd]<sync_time[i+1]:
+ *                 for j in range(b-1):
+ */
+      }
+      __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+      goto __pyx_L12_try_end;
+      __pyx_L5_error:;
+      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
+
+      /* "Timing.pyx":15
+ *                         output[j]+=1
+ *                 dd+=1
+ *         except:             # <<<<<<<<<<<<<<
+ *             a=True
+ * 
+ */
+      /*except:*/ {
+        __Pyx_AddTraceback("Timing.time_point", __pyx_clineno, __pyx_lineno, __pyx_filename);
+        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_3, &__pyx_t_2) < 0) __PYX_ERR(0, 15, __pyx_L7_except_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_GOTREF(__pyx_t_2);
+
+        /* "Timing.pyx":16
+ *                 dd+=1
+ *         except:
+ *             a=True             # <<<<<<<<<<<<<<
  * 
  *     return output
  */
-      __pyx_v_dd = (__pyx_v_dd + 1);
+        __pyx_v_a = 1;
+        __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+        goto __pyx_L6_exception_handled;
+      }
+      __pyx_L7_except_error:;
+
+      /* "Timing.pyx":9
+ * 
+ *     for i in range(s-1):
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[dd]<sync_time[i+1]:
+ *                 for j in range(b-1):
+ */
+      __Pyx_XGIVEREF(__pyx_t_9);
+      __Pyx_XGIVEREF(__pyx_t_10);
+      __Pyx_XGIVEREF(__pyx_t_11);
+      __Pyx_ExceptionReset(__pyx_t_9, __pyx_t_10, __pyx_t_11);
+      goto __pyx_L1_error;
+      __pyx_L6_exception_handled:;
+      __Pyx_XGIVEREF(__pyx_t_9);
+      __Pyx_XGIVEREF(__pyx_t_10);
+      __Pyx_XGIVEREF(__pyx_t_11);
+      __Pyx_ExceptionReset(__pyx_t_9, __pyx_t_10, __pyx_t_11);
+      __pyx_L12_try_end:;
     }
   }
 
-  /* "Timing.pyx":15
- *             dd+=1
+  /* "Timing.pyx":18
+ *             a=True
  * 
  *     return output             # <<<<<<<<<<<<<<
  * 
  * def channel_timing(double[:] sync_time,int s, double[:] detector_time,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_output, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_output, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
   goto __pyx_L0;
 
   /* "Timing.pyx":2
@@ -2447,17 +2572,18 @@ static PyObject *__pyx_pf_6Timing_time_point(CYTHON_UNUSED PyObject *__pyx_self,
   return __pyx_r;
 }
 
-/* "Timing.pyx":17
+/* "Timing.pyx":20
  *     return output
  * 
  * def channel_timing(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
  *                    double[:] channels,double delta_time,int num_channels):
- *     cdef int d_loc=0
+ *     '''Used to split the total into different regions'''
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_6Timing_3channel_timing(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_6Timing_3channel_timing = {"channel_timing", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6Timing_3channel_timing, METH_VARARGS|METH_KEYWORDS, 0};
+static char __pyx_doc_6Timing_2channel_timing[] = "Used to split the total into different regions";
+static PyMethodDef __pyx_mdef_6Timing_3channel_timing = {"channel_timing", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6Timing_3channel_timing, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6Timing_2channel_timing};
 static PyObject *__pyx_pw_6Timing_3channel_timing(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_sync_time = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_s;
@@ -2502,35 +2628,35 @@ static PyObject *__pyx_pw_6Timing_3channel_timing(PyObject *__pyx_self, PyObject
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_s)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, 1); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, 1); __PYX_ERR(0, 20, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_detector_time)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, 2); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, 2); __PYX_ERR(0, 20, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_channels)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, 3); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, 3); __PYX_ERR(0, 20, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_delta_time)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, 4); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, 4); __PYX_ERR(0, 20, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_channels)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, 5); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, 5); __PYX_ERR(0, 20, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "channel_timing") < 0)) __PYX_ERR(0, 17, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "channel_timing") < 0)) __PYX_ERR(0, 20, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
       goto __pyx_L5_argtuple_error;
@@ -2542,16 +2668,16 @@ static PyObject *__pyx_pw_6Timing_3channel_timing(PyObject *__pyx_self, PyObject
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
     }
-    __pyx_v_sync_time = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sync_time.memview)) __PYX_ERR(0, 17, __pyx_L3_error)
-    __pyx_v_s = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_s == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 17, __pyx_L3_error)
-    __pyx_v_detector_time = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_detector_time.memview)) __PYX_ERR(0, 17, __pyx_L3_error)
-    __pyx_v_channels = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_channels.memview)) __PYX_ERR(0, 18, __pyx_L3_error)
-    __pyx_v_delta_time = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_delta_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 18, __pyx_L3_error)
-    __pyx_v_num_channels = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_num_channels == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 18, __pyx_L3_error)
+    __pyx_v_sync_time = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sync_time.memview)) __PYX_ERR(0, 20, __pyx_L3_error)
+    __pyx_v_s = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_s == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 20, __pyx_L3_error)
+    __pyx_v_detector_time = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_detector_time.memview)) __PYX_ERR(0, 20, __pyx_L3_error)
+    __pyx_v_channels = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_channels.memview)) __PYX_ERR(0, 21, __pyx_L3_error)
+    __pyx_v_delta_time = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_delta_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 21, __pyx_L3_error)
+    __pyx_v_num_channels = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_num_channels == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 21, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 17, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("channel_timing", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 20, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("Timing.channel_timing", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2570,6 +2696,7 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
   int __pyx_v_i;
   __Pyx_memviewslice __pyx_v_region1_output = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_region2_output = { 0, 0, { 0 }, { 0 }, { 0 } };
+  CYTHON_UNUSED int __pyx_v_a;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2580,26 +2707,29 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
   int __pyx_t_6;
   int __pyx_t_7;
   int __pyx_t_8;
-  Py_ssize_t __pyx_t_9;
-  int __pyx_t_10;
-  Py_ssize_t __pyx_t_11;
-  int __pyx_t_12;
+  PyObject *__pyx_t_9 = NULL;
+  PyObject *__pyx_t_10 = NULL;
+  PyObject *__pyx_t_11 = NULL;
+  Py_ssize_t __pyx_t_12;
+  int __pyx_t_13;
+  Py_ssize_t __pyx_t_14;
+  int __pyx_t_15;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("channel_timing", 0);
 
-  /* "Timing.pyx":19
- * def channel_timing(double[:] sync_time,int s, double[:] detector_time,
+  /* "Timing.pyx":23
  *                    double[:] channels,double delta_time,int num_channels):
+ *     '''Used to split the total into different regions'''
  *     cdef int d_loc=0             # <<<<<<<<<<<<<<
  *     cdef int split_loc=0
  *     cdef int i
  */
   __pyx_v_d_loc = 0;
 
-  /* "Timing.pyx":20
- *                    double[:] channels,double delta_time,int num_channels):
+  /* "Timing.pyx":24
+ *     '''Used to split the total into different regions'''
  *     cdef int d_loc=0
  *     cdef int split_loc=0             # <<<<<<<<<<<<<<
  *     cdef int i
@@ -2607,19 +2737,19 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
  */
   __pyx_v_split_loc = 0;
 
-  /* "Timing.pyx":22
+  /* "Timing.pyx":26
  *     cdef int split_loc=0
  *     cdef int i
  *     cdef double[:] region1_output=np.zeros(num_channels)             # <<<<<<<<<<<<<<
  *     cdef double[:] region2_output=np.zeros(num_channels)
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_num_channels); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_num_channels); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -2634,28 +2764,28 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_region1_output = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "Timing.pyx":23
+  /* "Timing.pyx":27
  *     cdef int i
  *     cdef double[:] region1_output=np.zeros(num_channels)
  *     cdef double[:] region2_output=np.zeros(num_channels)             # <<<<<<<<<<<<<<
  * 
  *     for i in range(s):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 27, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 27, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_channels); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_channels); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 27, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -2670,196 +2800,282 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 27, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 27, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_region2_output = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "Timing.pyx":25
+  /* "Timing.pyx":29
  *     cdef double[:] region2_output=np.zeros(num_channels)
  * 
  *     for i in range(s):             # <<<<<<<<<<<<<<
- *         while detector_time[d_loc]<sync_time[i]+delta_time:
- *             region1_output[int(channels[d_loc])]+=1
+ *         try:
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
  */
   __pyx_t_6 = __pyx_v_s;
   __pyx_t_7 = __pyx_t_6;
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "Timing.pyx":26
+    /* "Timing.pyx":30
  * 
  *     for i in range(s):
- *         while detector_time[d_loc]<sync_time[i]+delta_time:             # <<<<<<<<<<<<<<
- *             region1_output[int(channels[d_loc])]+=1
- *             d_loc+=1
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 region1_output[int(channels[d_loc])]+=1
  */
-    while (1) {
-      __pyx_t_9 = __pyx_v_d_loc;
-      __pyx_t_10 = -1;
-      if (__pyx_t_9 < 0) {
-        __pyx_t_9 += __pyx_v_detector_time.shape[0];
-        if (unlikely(__pyx_t_9 < 0)) __pyx_t_10 = 0;
-      } else if (unlikely(__pyx_t_9 >= __pyx_v_detector_time.shape[0])) __pyx_t_10 = 0;
-      if (unlikely(__pyx_t_10 != -1)) {
-        __Pyx_RaiseBufferIndexError(__pyx_t_10);
-        __PYX_ERR(0, 26, __pyx_L1_error)
-      }
-      __pyx_t_11 = __pyx_v_i;
-      __pyx_t_10 = -1;
-      if (__pyx_t_11 < 0) {
-        __pyx_t_11 += __pyx_v_sync_time.shape[0];
-        if (unlikely(__pyx_t_11 < 0)) __pyx_t_10 = 0;
-      } else if (unlikely(__pyx_t_11 >= __pyx_v_sync_time.shape[0])) __pyx_t_10 = 0;
-      if (unlikely(__pyx_t_10 != -1)) {
-        __Pyx_RaiseBufferIndexError(__pyx_t_10);
-        __PYX_ERR(0, 26, __pyx_L1_error)
-      }
-      __pyx_t_12 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_9 * __pyx_v_detector_time.strides[0]) ))) < ((*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_11 * __pyx_v_sync_time.strides[0]) ))) + __pyx_v_delta_time)) != 0);
-      if (!__pyx_t_12) break;
+    {
+      __Pyx_PyThreadState_declare
+      __Pyx_PyThreadState_assign
+      __Pyx_ExceptionSave(&__pyx_t_9, &__pyx_t_10, &__pyx_t_11);
+      __Pyx_XGOTREF(__pyx_t_9);
+      __Pyx_XGOTREF(__pyx_t_10);
+      __Pyx_XGOTREF(__pyx_t_11);
+      /*try:*/ {
 
-      /* "Timing.pyx":27
+        /* "Timing.pyx":31
  *     for i in range(s):
- *         while detector_time[d_loc]<sync_time[i]+delta_time:
- *             region1_output[int(channels[d_loc])]+=1             # <<<<<<<<<<<<<<
- *             d_loc+=1
- *         while detector_time[d_loc]<sync_time[i+1]:
+ *         try:
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:             # <<<<<<<<<<<<<<
+ *                 region1_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1
  */
-      __pyx_t_11 = __pyx_v_d_loc;
-      __pyx_t_10 = -1;
-      if (__pyx_t_11 < 0) {
-        __pyx_t_11 += __pyx_v_channels.shape[0];
-        if (unlikely(__pyx_t_11 < 0)) __pyx_t_10 = 0;
-      } else if (unlikely(__pyx_t_11 >= __pyx_v_channels.shape[0])) __pyx_t_10 = 0;
-      if (unlikely(__pyx_t_10 != -1)) {
-        __Pyx_RaiseBufferIndexError(__pyx_t_10);
-        __PYX_ERR(0, 27, __pyx_L1_error)
-      }
-      __pyx_t_9 = ((Py_ssize_t)(*((double *) ( /* dim=0 */ (__pyx_v_channels.data + __pyx_t_11 * __pyx_v_channels.strides[0]) ))));
-      __pyx_t_10 = -1;
-      if (__pyx_t_9 < 0) {
-        __pyx_t_9 += __pyx_v_region1_output.shape[0];
-        if (unlikely(__pyx_t_9 < 0)) __pyx_t_10 = 0;
-      } else if (unlikely(__pyx_t_9 >= __pyx_v_region1_output.shape[0])) __pyx_t_10 = 0;
-      if (unlikely(__pyx_t_10 != -1)) {
-        __Pyx_RaiseBufferIndexError(__pyx_t_10);
-        __PYX_ERR(0, 27, __pyx_L1_error)
-      }
-      *((double *) ( /* dim=0 */ (__pyx_v_region1_output.data + __pyx_t_9 * __pyx_v_region1_output.strides[0]) )) += 1.0;
+        while (1) {
+          __pyx_t_12 = __pyx_v_d_loc;
+          __pyx_t_13 = -1;
+          if (__pyx_t_12 < 0) {
+            __pyx_t_12 += __pyx_v_detector_time.shape[0];
+            if (unlikely(__pyx_t_12 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_12 >= __pyx_v_detector_time.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 31, __pyx_L5_error)
+          }
+          __pyx_t_14 = __pyx_v_i;
+          __pyx_t_13 = -1;
+          if (__pyx_t_14 < 0) {
+            __pyx_t_14 += __pyx_v_sync_time.shape[0];
+            if (unlikely(__pyx_t_14 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_14 >= __pyx_v_sync_time.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 31, __pyx_L5_error)
+          }
+          __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_12 * __pyx_v_detector_time.strides[0]) ))) < ((*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_14 * __pyx_v_sync_time.strides[0]) ))) + __pyx_v_delta_time)) != 0);
+          if (!__pyx_t_15) break;
 
-      /* "Timing.pyx":28
- *         while detector_time[d_loc]<sync_time[i]+delta_time:
- *             region1_output[int(channels[d_loc])]+=1
- *             d_loc+=1             # <<<<<<<<<<<<<<
- *         while detector_time[d_loc]<sync_time[i+1]:
- *             region2_output[int(channels[d_loc])]+=1
+          /* "Timing.pyx":32
+ *         try:
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 region1_output[int(channels[d_loc])]+=1             # <<<<<<<<<<<<<<
+ *                 d_loc+=1
+ *             while detector_time[d_loc]<sync_time[i+1]:
  */
-      __pyx_v_d_loc = (__pyx_v_d_loc + 1);
-    }
+          __pyx_t_14 = __pyx_v_d_loc;
+          __pyx_t_13 = -1;
+          if (__pyx_t_14 < 0) {
+            __pyx_t_14 += __pyx_v_channels.shape[0];
+            if (unlikely(__pyx_t_14 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_14 >= __pyx_v_channels.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 32, __pyx_L5_error)
+          }
+          __pyx_t_12 = ((Py_ssize_t)(*((double *) ( /* dim=0 */ (__pyx_v_channels.data + __pyx_t_14 * __pyx_v_channels.strides[0]) ))));
+          __pyx_t_13 = -1;
+          if (__pyx_t_12 < 0) {
+            __pyx_t_12 += __pyx_v_region1_output.shape[0];
+            if (unlikely(__pyx_t_12 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_12 >= __pyx_v_region1_output.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 32, __pyx_L5_error)
+          }
+          *((double *) ( /* dim=0 */ (__pyx_v_region1_output.data + __pyx_t_12 * __pyx_v_region1_output.strides[0]) )) += 1.0;
 
-    /* "Timing.pyx":29
- *             region1_output[int(channels[d_loc])]+=1
- *             d_loc+=1
- *         while detector_time[d_loc]<sync_time[i+1]:             # <<<<<<<<<<<<<<
- *             region2_output[int(channels[d_loc])]+=1
- *             d_loc+=1
+          /* "Timing.pyx":33
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 region1_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i+1]:
+ *                 region2_output[int(channels[d_loc])]+=1
  */
-    while (1) {
-      __pyx_t_11 = __pyx_v_d_loc;
-      __pyx_t_10 = -1;
-      if (__pyx_t_11 < 0) {
-        __pyx_t_11 += __pyx_v_detector_time.shape[0];
-        if (unlikely(__pyx_t_11 < 0)) __pyx_t_10 = 0;
-      } else if (unlikely(__pyx_t_11 >= __pyx_v_detector_time.shape[0])) __pyx_t_10 = 0;
-      if (unlikely(__pyx_t_10 != -1)) {
-        __Pyx_RaiseBufferIndexError(__pyx_t_10);
-        __PYX_ERR(0, 29, __pyx_L1_error)
-      }
-      __pyx_t_9 = (__pyx_v_i + 1);
-      __pyx_t_10 = -1;
-      if (__pyx_t_9 < 0) {
-        __pyx_t_9 += __pyx_v_sync_time.shape[0];
-        if (unlikely(__pyx_t_9 < 0)) __pyx_t_10 = 0;
-      } else if (unlikely(__pyx_t_9 >= __pyx_v_sync_time.shape[0])) __pyx_t_10 = 0;
-      if (unlikely(__pyx_t_10 != -1)) {
-        __Pyx_RaiseBufferIndexError(__pyx_t_10);
-        __PYX_ERR(0, 29, __pyx_L1_error)
-      }
-      __pyx_t_12 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_11 * __pyx_v_detector_time.strides[0]) ))) < (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_9 * __pyx_v_sync_time.strides[0]) )))) != 0);
-      if (!__pyx_t_12) break;
+          __pyx_v_d_loc = (__pyx_v_d_loc + 1);
+        }
 
-      /* "Timing.pyx":30
- *             d_loc+=1
- *         while detector_time[d_loc]<sync_time[i+1]:
- *             region2_output[int(channels[d_loc])]+=1             # <<<<<<<<<<<<<<
- *             d_loc+=1
+        /* "Timing.pyx":34
+ *                 region1_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1
+ *             while detector_time[d_loc]<sync_time[i+1]:             # <<<<<<<<<<<<<<
+ *                 region2_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1
+ */
+        while (1) {
+          __pyx_t_14 = __pyx_v_d_loc;
+          __pyx_t_13 = -1;
+          if (__pyx_t_14 < 0) {
+            __pyx_t_14 += __pyx_v_detector_time.shape[0];
+            if (unlikely(__pyx_t_14 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_14 >= __pyx_v_detector_time.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 34, __pyx_L5_error)
+          }
+          __pyx_t_12 = (__pyx_v_i + 1);
+          __pyx_t_13 = -1;
+          if (__pyx_t_12 < 0) {
+            __pyx_t_12 += __pyx_v_sync_time.shape[0];
+            if (unlikely(__pyx_t_12 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_12 >= __pyx_v_sync_time.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 34, __pyx_L5_error)
+          }
+          __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_14 * __pyx_v_detector_time.strides[0]) ))) < (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_12 * __pyx_v_sync_time.strides[0]) )))) != 0);
+          if (!__pyx_t_15) break;
+
+          /* "Timing.pyx":35
+ *                 d_loc+=1
+ *             while detector_time[d_loc]<sync_time[i+1]:
+ *                 region2_output[int(channels[d_loc])]+=1             # <<<<<<<<<<<<<<
+ *                 d_loc+=1
+ *         except:
+ */
+          __pyx_t_12 = __pyx_v_d_loc;
+          __pyx_t_13 = -1;
+          if (__pyx_t_12 < 0) {
+            __pyx_t_12 += __pyx_v_channels.shape[0];
+            if (unlikely(__pyx_t_12 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_12 >= __pyx_v_channels.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 35, __pyx_L5_error)
+          }
+          __pyx_t_14 = ((Py_ssize_t)(*((double *) ( /* dim=0 */ (__pyx_v_channels.data + __pyx_t_12 * __pyx_v_channels.strides[0]) ))));
+          __pyx_t_13 = -1;
+          if (__pyx_t_14 < 0) {
+            __pyx_t_14 += __pyx_v_region2_output.shape[0];
+            if (unlikely(__pyx_t_14 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_14 >= __pyx_v_region2_output.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 35, __pyx_L5_error)
+          }
+          *((double *) ( /* dim=0 */ (__pyx_v_region2_output.data + __pyx_t_14 * __pyx_v_region2_output.strides[0]) )) += 1.0;
+
+          /* "Timing.pyx":36
+ *             while detector_time[d_loc]<sync_time[i+1]:
+ *                 region2_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1             # <<<<<<<<<<<<<<
+ *         except:
+ *             a=True
+ */
+          __pyx_v_d_loc = (__pyx_v_d_loc + 1);
+        }
+
+        /* "Timing.pyx":30
+ * 
+ *     for i in range(s):
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 region1_output[int(channels[d_loc])]+=1
+ */
+      }
+      __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+      goto __pyx_L12_try_end;
+      __pyx_L5_error:;
+      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
+
+      /* "Timing.pyx":37
+ *                 region2_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1
+ *         except:             # <<<<<<<<<<<<<<
+ *             a=True
  * 
  */
-      __pyx_t_9 = __pyx_v_d_loc;
-      __pyx_t_10 = -1;
-      if (__pyx_t_9 < 0) {
-        __pyx_t_9 += __pyx_v_channels.shape[0];
-        if (unlikely(__pyx_t_9 < 0)) __pyx_t_10 = 0;
-      } else if (unlikely(__pyx_t_9 >= __pyx_v_channels.shape[0])) __pyx_t_10 = 0;
-      if (unlikely(__pyx_t_10 != -1)) {
-        __Pyx_RaiseBufferIndexError(__pyx_t_10);
-        __PYX_ERR(0, 30, __pyx_L1_error)
-      }
-      __pyx_t_11 = ((Py_ssize_t)(*((double *) ( /* dim=0 */ (__pyx_v_channels.data + __pyx_t_9 * __pyx_v_channels.strides[0]) ))));
-      __pyx_t_10 = -1;
-      if (__pyx_t_11 < 0) {
-        __pyx_t_11 += __pyx_v_region2_output.shape[0];
-        if (unlikely(__pyx_t_11 < 0)) __pyx_t_10 = 0;
-      } else if (unlikely(__pyx_t_11 >= __pyx_v_region2_output.shape[0])) __pyx_t_10 = 0;
-      if (unlikely(__pyx_t_10 != -1)) {
-        __Pyx_RaiseBufferIndexError(__pyx_t_10);
-        __PYX_ERR(0, 30, __pyx_L1_error)
-      }
-      *((double *) ( /* dim=0 */ (__pyx_v_region2_output.data + __pyx_t_11 * __pyx_v_region2_output.strides[0]) )) += 1.0;
+      /*except:*/ {
+        __Pyx_AddTraceback("Timing.channel_timing", __pyx_clineno, __pyx_lineno, __pyx_filename);
+        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_2, &__pyx_t_3) < 0) __PYX_ERR(0, 37, __pyx_L7_except_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_GOTREF(__pyx_t_3);
 
-      /* "Timing.pyx":31
- *         while detector_time[d_loc]<sync_time[i+1]:
- *             region2_output[int(channels[d_loc])]+=1
- *             d_loc+=1             # <<<<<<<<<<<<<<
+        /* "Timing.pyx":38
+ *                 d_loc+=1
+ *         except:
+ *             a=True             # <<<<<<<<<<<<<<
  * 
  *     return region1_output, region2_output
  */
-      __pyx_v_d_loc = (__pyx_v_d_loc + 1);
+        __pyx_v_a = 1;
+        __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+        goto __pyx_L6_exception_handled;
+      }
+      __pyx_L7_except_error:;
+
+      /* "Timing.pyx":30
+ * 
+ *     for i in range(s):
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 region1_output[int(channels[d_loc])]+=1
+ */
+      __Pyx_XGIVEREF(__pyx_t_9);
+      __Pyx_XGIVEREF(__pyx_t_10);
+      __Pyx_XGIVEREF(__pyx_t_11);
+      __Pyx_ExceptionReset(__pyx_t_9, __pyx_t_10, __pyx_t_11);
+      goto __pyx_L1_error;
+      __pyx_L6_exception_handled:;
+      __Pyx_XGIVEREF(__pyx_t_9);
+      __Pyx_XGIVEREF(__pyx_t_10);
+      __Pyx_XGIVEREF(__pyx_t_11);
+      __Pyx_ExceptionReset(__pyx_t_9, __pyx_t_10, __pyx_t_11);
+      __pyx_L12_try_end:;
     }
   }
 
-  /* "Timing.pyx":33
- *             d_loc+=1
+  /* "Timing.pyx":40
+ *             a=True
  * 
  *     return region1_output, region2_output             # <<<<<<<<<<<<<<
+ * 
+ * def channel_timing_roi(double[:] sync_time,int s, double[:] detector_time,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_region1_output, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_region2_output, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 33, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_region1_output, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_region2_output, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
-  __pyx_t_1 = 0;
-  __pyx_t_2 = 0;
-  __pyx_r = __pyx_t_3;
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_2);
   __pyx_t_3 = 0;
+  __pyx_t_2 = 0;
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "Timing.pyx":17
+  /* "Timing.pyx":20
  *     return output
  * 
  * def channel_timing(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
  *                    double[:] channels,double delta_time,int num_channels):
- *     cdef int d_loc=0
+ *     '''Used to split the total into different regions'''
  */
 
   /* function exit code */
@@ -2877,6 +3093,1434 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
   __PYX_XDEC_MEMVIEW(&__pyx_v_sync_time, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_detector_time, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_channels, 1);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "Timing.pyx":42
+ *     return region1_output, region2_output
+ * 
+ * def channel_timing_roi(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
+ *                    double[:] channels,double delta_time,int num_channels):
+ *     cdef int d_loc=0
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6Timing_5channel_timing_roi(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_6Timing_5channel_timing_roi = {"channel_timing_roi", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6Timing_5channel_timing_roi, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6Timing_5channel_timing_roi(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __Pyx_memviewslice __pyx_v_sync_time = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_s;
+  __Pyx_memviewslice __pyx_v_detector_time = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_channels = { 0, 0, { 0 }, { 0 }, { 0 } };
+  double __pyx_v_delta_time;
+  int __pyx_v_num_channels;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("channel_timing_roi (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_sync_time,&__pyx_n_s_s,&__pyx_n_s_detector_time,&__pyx_n_s_channels,&__pyx_n_s_delta_time,&__pyx_n_s_num_channels,0};
+    PyObject* values[6] = {0,0,0,0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sync_time)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_s)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("channel_timing_roi", 1, 6, 6, 1); __PYX_ERR(0, 42, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_detector_time)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("channel_timing_roi", 1, 6, 6, 2); __PYX_ERR(0, 42, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_channels)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("channel_timing_roi", 1, 6, 6, 3); __PYX_ERR(0, 42, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  4:
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_delta_time)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("channel_timing_roi", 1, 6, 6, 4); __PYX_ERR(0, 42, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  5:
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_channels)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("channel_timing_roi", 1, 6, 6, 5); __PYX_ERR(0, 42, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "channel_timing_roi") < 0)) __PYX_ERR(0, 42, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+      values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+    }
+    __pyx_v_sync_time = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sync_time.memview)) __PYX_ERR(0, 42, __pyx_L3_error)
+    __pyx_v_s = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_s == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 42, __pyx_L3_error)
+    __pyx_v_detector_time = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_detector_time.memview)) __PYX_ERR(0, 42, __pyx_L3_error)
+    __pyx_v_channels = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_channels.memview)) __PYX_ERR(0, 43, __pyx_L3_error)
+    __pyx_v_delta_time = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_delta_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 43, __pyx_L3_error)
+    __pyx_v_num_channels = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_num_channels == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 43, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("channel_timing_roi", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 42, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("Timing.channel_timing_roi", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_6Timing_4channel_timing_roi(__pyx_self, __pyx_v_sync_time, __pyx_v_s, __pyx_v_detector_time, __pyx_v_channels, __pyx_v_delta_time, __pyx_v_num_channels);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sync_time, int __pyx_v_s, __Pyx_memviewslice __pyx_v_detector_time, __Pyx_memviewslice __pyx_v_channels, double __pyx_v_delta_time, int __pyx_v_num_channels) {
+  int __pyx_v_d_loc;
+  CYTHON_UNUSED int __pyx_v_split_loc;
+  int __pyx_v_i;
+  __Pyx_memviewslice __pyx_v_region1_output = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_region2_output = { 0, 0, { 0 }, { 0 }, { 0 } };
+  CYTHON_UNUSED int __pyx_v_a;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  __Pyx_memviewslice __pyx_t_5 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_t_6;
+  int __pyx_t_7;
+  int __pyx_t_8;
+  PyObject *__pyx_t_9 = NULL;
+  PyObject *__pyx_t_10 = NULL;
+  PyObject *__pyx_t_11 = NULL;
+  Py_ssize_t __pyx_t_12;
+  int __pyx_t_13;
+  Py_ssize_t __pyx_t_14;
+  int __pyx_t_15;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("channel_timing_roi", 0);
+
+  /* "Timing.pyx":44
+ * def channel_timing_roi(double[:] sync_time,int s, double[:] detector_time,
+ *                    double[:] channels,double delta_time,int num_channels):
+ *     cdef int d_loc=0             # <<<<<<<<<<<<<<
+ *     cdef int split_loc=0
+ *     cdef int i
+ */
+  __pyx_v_d_loc = 0;
+
+  /* "Timing.pyx":45
+ *                    double[:] channels,double delta_time,int num_channels):
+ *     cdef int d_loc=0
+ *     cdef int split_loc=0             # <<<<<<<<<<<<<<
+ *     cdef int i
+ *     cdef double[:] region1_output=np.zeros(num_channels)
+ */
+  __pyx_v_split_loc = 0;
+
+  /* "Timing.pyx":47
+ *     cdef int split_loc=0
+ *     cdef int i
+ *     cdef double[:] region1_output=np.zeros(num_channels)             # <<<<<<<<<<<<<<
+ *     cdef double[:] region2_output=np.zeros(num_channels)
+ * 
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_num_channels); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
+    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+    if (likely(__pyx_t_4)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+      __Pyx_INCREF(__pyx_t_4);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_3, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_region1_output = __pyx_t_5;
+  __pyx_t_5.memview = NULL;
+  __pyx_t_5.data = NULL;
+
+  /* "Timing.pyx":48
+ *     cdef int i
+ *     cdef double[:] region1_output=np.zeros(num_channels)
+ *     cdef double[:] region2_output=np.zeros(num_channels)             # <<<<<<<<<<<<<<
+ * 
+ *     for i in range(s):
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_channels); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_4)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_4);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_region2_output = __pyx_t_5;
+  __pyx_t_5.memview = NULL;
+  __pyx_t_5.data = NULL;
+
+  /* "Timing.pyx":50
+ *     cdef double[:] region2_output=np.zeros(num_channels)
+ * 
+ *     for i in range(s):             # <<<<<<<<<<<<<<
+ *         try:
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ */
+  __pyx_t_6 = __pyx_v_s;
+  __pyx_t_7 = __pyx_t_6;
+  for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
+    __pyx_v_i = __pyx_t_8;
+
+    /* "Timing.pyx":51
+ * 
+ *     for i in range(s):
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 region1_output[int(channels[d_loc])]+=1
+ */
+    {
+      __Pyx_PyThreadState_declare
+      __Pyx_PyThreadState_assign
+      __Pyx_ExceptionSave(&__pyx_t_9, &__pyx_t_10, &__pyx_t_11);
+      __Pyx_XGOTREF(__pyx_t_9);
+      __Pyx_XGOTREF(__pyx_t_10);
+      __Pyx_XGOTREF(__pyx_t_11);
+      /*try:*/ {
+
+        /* "Timing.pyx":52
+ *     for i in range(s):
+ *         try:
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:             # <<<<<<<<<<<<<<
+ *                 region1_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1
+ */
+        while (1) {
+          __pyx_t_12 = __pyx_v_d_loc;
+          __pyx_t_13 = -1;
+          if (__pyx_t_12 < 0) {
+            __pyx_t_12 += __pyx_v_detector_time.shape[0];
+            if (unlikely(__pyx_t_12 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_12 >= __pyx_v_detector_time.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 52, __pyx_L5_error)
+          }
+          __pyx_t_14 = __pyx_v_i;
+          __pyx_t_13 = -1;
+          if (__pyx_t_14 < 0) {
+            __pyx_t_14 += __pyx_v_sync_time.shape[0];
+            if (unlikely(__pyx_t_14 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_14 >= __pyx_v_sync_time.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 52, __pyx_L5_error)
+          }
+          __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_12 * __pyx_v_detector_time.strides[0]) ))) < ((*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_14 * __pyx_v_sync_time.strides[0]) ))) + __pyx_v_delta_time)) != 0);
+          if (!__pyx_t_15) break;
+
+          /* "Timing.pyx":53
+ *         try:
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 region1_output[int(channels[d_loc])]+=1             # <<<<<<<<<<<<<<
+ *                 d_loc+=1
+ *             while detector_time[d_loc]<sync_time[i+1]:
+ */
+          __pyx_t_14 = __pyx_v_d_loc;
+          __pyx_t_13 = -1;
+          if (__pyx_t_14 < 0) {
+            __pyx_t_14 += __pyx_v_channels.shape[0];
+            if (unlikely(__pyx_t_14 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_14 >= __pyx_v_channels.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 53, __pyx_L5_error)
+          }
+          __pyx_t_12 = ((Py_ssize_t)(*((double *) ( /* dim=0 */ (__pyx_v_channels.data + __pyx_t_14 * __pyx_v_channels.strides[0]) ))));
+          __pyx_t_13 = -1;
+          if (__pyx_t_12 < 0) {
+            __pyx_t_12 += __pyx_v_region1_output.shape[0];
+            if (unlikely(__pyx_t_12 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_12 >= __pyx_v_region1_output.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 53, __pyx_L5_error)
+          }
+          *((double *) ( /* dim=0 */ (__pyx_v_region1_output.data + __pyx_t_12 * __pyx_v_region1_output.strides[0]) )) += 1.0;
+
+          /* "Timing.pyx":54
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 region1_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i+1]:
+ *                 region2_output[int(channels[d_loc])]+=1
+ */
+          __pyx_v_d_loc = (__pyx_v_d_loc + 1);
+        }
+
+        /* "Timing.pyx":55
+ *                 region1_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1
+ *             while detector_time[d_loc]<sync_time[i+1]:             # <<<<<<<<<<<<<<
+ *                 region2_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1
+ */
+        while (1) {
+          __pyx_t_14 = __pyx_v_d_loc;
+          __pyx_t_13 = -1;
+          if (__pyx_t_14 < 0) {
+            __pyx_t_14 += __pyx_v_detector_time.shape[0];
+            if (unlikely(__pyx_t_14 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_14 >= __pyx_v_detector_time.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 55, __pyx_L5_error)
+          }
+          __pyx_t_12 = (__pyx_v_i + 1);
+          __pyx_t_13 = -1;
+          if (__pyx_t_12 < 0) {
+            __pyx_t_12 += __pyx_v_sync_time.shape[0];
+            if (unlikely(__pyx_t_12 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_12 >= __pyx_v_sync_time.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 55, __pyx_L5_error)
+          }
+          __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_14 * __pyx_v_detector_time.strides[0]) ))) < (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_12 * __pyx_v_sync_time.strides[0]) )))) != 0);
+          if (!__pyx_t_15) break;
+
+          /* "Timing.pyx":56
+ *                 d_loc+=1
+ *             while detector_time[d_loc]<sync_time[i+1]:
+ *                 region2_output[int(channels[d_loc])]+=1             # <<<<<<<<<<<<<<
+ *                 d_loc+=1
+ *         except:
+ */
+          __pyx_t_12 = __pyx_v_d_loc;
+          __pyx_t_13 = -1;
+          if (__pyx_t_12 < 0) {
+            __pyx_t_12 += __pyx_v_channels.shape[0];
+            if (unlikely(__pyx_t_12 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_12 >= __pyx_v_channels.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 56, __pyx_L5_error)
+          }
+          __pyx_t_14 = ((Py_ssize_t)(*((double *) ( /* dim=0 */ (__pyx_v_channels.data + __pyx_t_12 * __pyx_v_channels.strides[0]) ))));
+          __pyx_t_13 = -1;
+          if (__pyx_t_14 < 0) {
+            __pyx_t_14 += __pyx_v_region2_output.shape[0];
+            if (unlikely(__pyx_t_14 < 0)) __pyx_t_13 = 0;
+          } else if (unlikely(__pyx_t_14 >= __pyx_v_region2_output.shape[0])) __pyx_t_13 = 0;
+          if (unlikely(__pyx_t_13 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_13);
+            __PYX_ERR(0, 56, __pyx_L5_error)
+          }
+          *((double *) ( /* dim=0 */ (__pyx_v_region2_output.data + __pyx_t_14 * __pyx_v_region2_output.strides[0]) )) += 1.0;
+
+          /* "Timing.pyx":57
+ *             while detector_time[d_loc]<sync_time[i+1]:
+ *                 region2_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1             # <<<<<<<<<<<<<<
+ *         except:
+ *             a=True
+ */
+          __pyx_v_d_loc = (__pyx_v_d_loc + 1);
+        }
+
+        /* "Timing.pyx":51
+ * 
+ *     for i in range(s):
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 region1_output[int(channels[d_loc])]+=1
+ */
+      }
+      __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+      goto __pyx_L12_try_end;
+      __pyx_L5_error:;
+      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
+
+      /* "Timing.pyx":58
+ *                 region2_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1
+ *         except:             # <<<<<<<<<<<<<<
+ *             a=True
+ * 
+ */
+      /*except:*/ {
+        __Pyx_AddTraceback("Timing.channel_timing_roi", __pyx_clineno, __pyx_lineno, __pyx_filename);
+        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_2, &__pyx_t_3) < 0) __PYX_ERR(0, 58, __pyx_L7_except_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_GOTREF(__pyx_t_3);
+
+        /* "Timing.pyx":59
+ *                 d_loc+=1
+ *         except:
+ *             a=True             # <<<<<<<<<<<<<<
+ * 
+ *     return region1_output, region2_output
+ */
+        __pyx_v_a = 1;
+        __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+        goto __pyx_L6_exception_handled;
+      }
+      __pyx_L7_except_error:;
+
+      /* "Timing.pyx":51
+ * 
+ *     for i in range(s):
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 region1_output[int(channels[d_loc])]+=1
+ */
+      __Pyx_XGIVEREF(__pyx_t_9);
+      __Pyx_XGIVEREF(__pyx_t_10);
+      __Pyx_XGIVEREF(__pyx_t_11);
+      __Pyx_ExceptionReset(__pyx_t_9, __pyx_t_10, __pyx_t_11);
+      goto __pyx_L1_error;
+      __pyx_L6_exception_handled:;
+      __Pyx_XGIVEREF(__pyx_t_9);
+      __Pyx_XGIVEREF(__pyx_t_10);
+      __Pyx_XGIVEREF(__pyx_t_11);
+      __Pyx_ExceptionReset(__pyx_t_9, __pyx_t_10, __pyx_t_11);
+      __pyx_L12_try_end:;
+    }
+  }
+
+  /* "Timing.pyx":61
+ *             a=True
+ * 
+ *     return region1_output, region2_output             # <<<<<<<<<<<<<<
+ * 
+ * def ROI_Timing(double[:] sync_time,int s, double[:] detector_time,
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_region1_output, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_region2_output, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_2);
+  __pyx_t_3 = 0;
+  __pyx_t_2 = 0;
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "Timing.pyx":42
+ *     return region1_output, region2_output
+ * 
+ * def channel_timing_roi(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
+ *                    double[:] channels,double delta_time,int num_channels):
+ *     cdef int d_loc=0
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
+  __Pyx_AddTraceback("Timing.channel_timing_roi", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __PYX_XDEC_MEMVIEW(&__pyx_v_region1_output, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_region2_output, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_sync_time, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_detector_time, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_channels, 1);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "Timing.pyx":63
+ *     return region1_output, region2_output
+ * 
+ * def ROI_Timing(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
+ *                double[:] channels,double delta_time,int num_channels,
+ *                double[:] calibration, double upper, double lower):
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6Timing_7ROI_Timing(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_6Timing_6ROI_Timing[] = "Used to seperate the raw data into region 1 and 2 then keep the \n    associated time stamp with the raw pulse for detection probability \n    calculations";
+static PyMethodDef __pyx_mdef_6Timing_7ROI_Timing = {"ROI_Timing", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6Timing_7ROI_Timing, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6Timing_6ROI_Timing};
+static PyObject *__pyx_pw_6Timing_7ROI_Timing(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __Pyx_memviewslice __pyx_v_sync_time = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_s;
+  __Pyx_memviewslice __pyx_v_detector_time = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_channels = { 0, 0, { 0 }, { 0 }, { 0 } };
+  double __pyx_v_delta_time;
+  CYTHON_UNUSED int __pyx_v_num_channels;
+  __Pyx_memviewslice __pyx_v_calibration = { 0, 0, { 0 }, { 0 }, { 0 } };
+  double __pyx_v_upper;
+  double __pyx_v_lower;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("ROI_Timing (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_sync_time,&__pyx_n_s_s,&__pyx_n_s_detector_time,&__pyx_n_s_channels,&__pyx_n_s_delta_time,&__pyx_n_s_num_channels,&__pyx_n_s_calibration,&__pyx_n_s_upper,&__pyx_n_s_lower,0};
+    PyObject* values[9] = {0,0,0,0,0,0,0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
+        CYTHON_FALLTHROUGH;
+        case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
+        CYTHON_FALLTHROUGH;
+        case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+        CYTHON_FALLTHROUGH;
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sync_time)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_s)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("ROI_Timing", 1, 9, 9, 1); __PYX_ERR(0, 63, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_detector_time)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("ROI_Timing", 1, 9, 9, 2); __PYX_ERR(0, 63, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_channels)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("ROI_Timing", 1, 9, 9, 3); __PYX_ERR(0, 63, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  4:
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_delta_time)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("ROI_Timing", 1, 9, 9, 4); __PYX_ERR(0, 63, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  5:
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_channels)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("ROI_Timing", 1, 9, 9, 5); __PYX_ERR(0, 63, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  6:
+        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_calibration)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("ROI_Timing", 1, 9, 9, 6); __PYX_ERR(0, 63, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  7:
+        if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_upper)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("ROI_Timing", 1, 9, 9, 7); __PYX_ERR(0, 63, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  8:
+        if (likely((values[8] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_lower)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("ROI_Timing", 1, 9, 9, 8); __PYX_ERR(0, 63, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "ROI_Timing") < 0)) __PYX_ERR(0, 63, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 9) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+      values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+      values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+      values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
+      values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
+    }
+    __pyx_v_sync_time = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sync_time.memview)) __PYX_ERR(0, 63, __pyx_L3_error)
+    __pyx_v_s = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_s == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 63, __pyx_L3_error)
+    __pyx_v_detector_time = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_detector_time.memview)) __PYX_ERR(0, 63, __pyx_L3_error)
+    __pyx_v_channels = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_channels.memview)) __PYX_ERR(0, 64, __pyx_L3_error)
+    __pyx_v_delta_time = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_delta_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 64, __pyx_L3_error)
+    __pyx_v_num_channels = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_num_channels == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 64, __pyx_L3_error)
+    __pyx_v_calibration = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[6], PyBUF_WRITABLE); if (unlikely(!__pyx_v_calibration.memview)) __PYX_ERR(0, 65, __pyx_L3_error)
+    __pyx_v_upper = __pyx_PyFloat_AsDouble(values[7]); if (unlikely((__pyx_v_upper == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 65, __pyx_L3_error)
+    __pyx_v_lower = __pyx_PyFloat_AsDouble(values[8]); if (unlikely((__pyx_v_lower == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 65, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("ROI_Timing", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 63, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("Timing.ROI_Timing", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_6Timing_6ROI_Timing(__pyx_self, __pyx_v_sync_time, __pyx_v_s, __pyx_v_detector_time, __pyx_v_channels, __pyx_v_delta_time, __pyx_v_num_channels, __pyx_v_calibration, __pyx_v_upper, __pyx_v_lower);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6Timing_6ROI_Timing(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sync_time, int __pyx_v_s, __Pyx_memviewslice __pyx_v_detector_time, __Pyx_memviewslice __pyx_v_channels, double __pyx_v_delta_time, CYTHON_UNUSED int __pyx_v_num_channels, __Pyx_memviewslice __pyx_v_calibration, double __pyx_v_upper, double __pyx_v_lower) {
+  int __pyx_v_d_loc;
+  CYTHON_UNUSED int __pyx_v_split_loc;
+  int __pyx_v_i;
+  int __pyx_v_j;
+  int __pyx_v_calib_len;
+  int __pyx_v_num_pulses;
+  __Pyx_memviewslice __pyx_v_calibrated_pulse = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_num_roi_pulses;
+  __Pyx_memviewslice __pyx_v_roi_pulses = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_roi_times = { 0, 0, { 0 }, { 0 }, { 0 } };
+  CYTHON_UNUSED int __pyx_v_a;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  size_t __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  __Pyx_memviewslice __pyx_t_6 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_t_7;
+  int __pyx_t_8;
+  int __pyx_t_9;
+  Py_ssize_t __pyx_t_10;
+  int __pyx_t_11;
+  int __pyx_t_12;
+  Py_ssize_t __pyx_t_13;
+  Py_ssize_t __pyx_t_14;
+  int __pyx_t_15;
+  PyObject *__pyx_t_16 = NULL;
+  PyObject *__pyx_t_17 = NULL;
+  PyObject *__pyx_t_18 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("ROI_Timing", 0);
+
+  /* "Timing.pyx":69
+ *     associated time stamp with the raw pulse for detection probability
+ *     calculations'''
+ *     cdef int d_loc=0             # <<<<<<<<<<<<<<
+ *     cdef int split_loc=0
+ *     cdef int i,j
+ */
+  __pyx_v_d_loc = 0;
+
+  /* "Timing.pyx":70
+ *     calculations'''
+ *     cdef int d_loc=0
+ *     cdef int split_loc=0             # <<<<<<<<<<<<<<
+ *     cdef int i,j
+ *     cdef int calib_len=len(calibration)
+ */
+  __pyx_v_split_loc = 0;
+
+  /* "Timing.pyx":72
+ *     cdef int split_loc=0
+ *     cdef int i,j
+ *     cdef int calib_len=len(calibration)             # <<<<<<<<<<<<<<
+ *     j=0
+ *     # cdef double[:] region1_output=np.zeros(num_channels)
+ */
+  __pyx_t_1 = __Pyx_MemoryView_Len(__pyx_v_calibration); 
+  __pyx_v_calib_len = __pyx_t_1;
+
+  /* "Timing.pyx":73
+ *     cdef int i,j
+ *     cdef int calib_len=len(calibration)
+ *     j=0             # <<<<<<<<<<<<<<
+ *     # cdef double[:] region1_output=np.zeros(num_channels)
+ *     # cdef double[:] region2_output=np.zeros(num_channels)
+ */
+  __pyx_v_j = 0;
+
+  /* "Timing.pyx":76
+ *     # cdef double[:] region1_output=np.zeros(num_channels)
+ *     # cdef double[:] region2_output=np.zeros(num_channels)
+ *     cdef int num_pulses=len(detector_time)             # <<<<<<<<<<<<<<
+ *     cdef double[:] calibrated_pulse=np.zeros(num_pulses)
+ * 
+ */
+  __pyx_t_1 = __Pyx_MemoryView_Len(__pyx_v_detector_time); 
+  __pyx_v_num_pulses = __pyx_t_1;
+
+  /* "Timing.pyx":77
+ *     # cdef double[:] region2_output=np.zeros(num_channels)
+ *     cdef int num_pulses=len(detector_time)
+ *     cdef double[:] calibrated_pulse=np.zeros(num_pulses)             # <<<<<<<<<<<<<<
+ * 
+ *     #calibrate the raw spectrum
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_pulses); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_5 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_4, function);
+    }
+  }
+  __pyx_t_2 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_5, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_calibrated_pulse = __pyx_t_6;
+  __pyx_t_6.memview = NULL;
+  __pyx_t_6.data = NULL;
+
+  /* "Timing.pyx":80
+ * 
+ *     #calibrate the raw spectrum
+ *     for i in range(num_pulses):             # <<<<<<<<<<<<<<
+ *         if int(channels[i]) < calib_len:
+ *             calibrated_pulse[i]=calibration[int(channels[i])]
+ */
+  __pyx_t_7 = __pyx_v_num_pulses;
+  __pyx_t_8 = __pyx_t_7;
+  for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
+    __pyx_v_i = __pyx_t_9;
+
+    /* "Timing.pyx":81
+ *     #calibrate the raw spectrum
+ *     for i in range(num_pulses):
+ *         if int(channels[i]) < calib_len:             # <<<<<<<<<<<<<<
+ *             calibrated_pulse[i]=calibration[int(channels[i])]
+ * 
+ */
+    __pyx_t_10 = __pyx_v_i;
+    __pyx_t_11 = -1;
+    if (__pyx_t_10 < 0) {
+      __pyx_t_10 += __pyx_v_channels.shape[0];
+      if (unlikely(__pyx_t_10 < 0)) __pyx_t_11 = 0;
+    } else if (unlikely(__pyx_t_10 >= __pyx_v_channels.shape[0])) __pyx_t_11 = 0;
+    if (unlikely(__pyx_t_11 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_11);
+      __PYX_ERR(0, 81, __pyx_L1_error)
+    }
+    __pyx_t_2 = __Pyx_PyInt_FromDouble((*((double *) ( /* dim=0 */ (__pyx_v_channels.data + __pyx_t_10 * __pyx_v_channels.strides[0]) )))); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 81, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_calib_len); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 81, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_3 = PyObject_RichCompare(__pyx_t_2, __pyx_t_4, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 81, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 81, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (__pyx_t_12) {
+
+      /* "Timing.pyx":82
+ *     for i in range(num_pulses):
+ *         if int(channels[i]) < calib_len:
+ *             calibrated_pulse[i]=calibration[int(channels[i])]             # <<<<<<<<<<<<<<
+ * 
+ *     cdef int num_roi_pulses=0
+ */
+      __pyx_t_10 = __pyx_v_i;
+      __pyx_t_11 = -1;
+      if (__pyx_t_10 < 0) {
+        __pyx_t_10 += __pyx_v_channels.shape[0];
+        if (unlikely(__pyx_t_10 < 0)) __pyx_t_11 = 0;
+      } else if (unlikely(__pyx_t_10 >= __pyx_v_channels.shape[0])) __pyx_t_11 = 0;
+      if (unlikely(__pyx_t_11 != -1)) {
+        __Pyx_RaiseBufferIndexError(__pyx_t_11);
+        __PYX_ERR(0, 82, __pyx_L1_error)
+      }
+      __pyx_t_13 = ((Py_ssize_t)(*((double *) ( /* dim=0 */ (__pyx_v_channels.data + __pyx_t_10 * __pyx_v_channels.strides[0]) ))));
+      __pyx_t_11 = -1;
+      if (__pyx_t_13 < 0) {
+        __pyx_t_13 += __pyx_v_calibration.shape[0];
+        if (unlikely(__pyx_t_13 < 0)) __pyx_t_11 = 0;
+      } else if (unlikely(__pyx_t_13 >= __pyx_v_calibration.shape[0])) __pyx_t_11 = 0;
+      if (unlikely(__pyx_t_11 != -1)) {
+        __Pyx_RaiseBufferIndexError(__pyx_t_11);
+        __PYX_ERR(0, 82, __pyx_L1_error)
+      }
+      __pyx_t_14 = __pyx_v_i;
+      __pyx_t_11 = -1;
+      if (__pyx_t_14 < 0) {
+        __pyx_t_14 += __pyx_v_calibrated_pulse.shape[0];
+        if (unlikely(__pyx_t_14 < 0)) __pyx_t_11 = 0;
+      } else if (unlikely(__pyx_t_14 >= __pyx_v_calibrated_pulse.shape[0])) __pyx_t_11 = 0;
+      if (unlikely(__pyx_t_11 != -1)) {
+        __Pyx_RaiseBufferIndexError(__pyx_t_11);
+        __PYX_ERR(0, 82, __pyx_L1_error)
+      }
+      *((double *) ( /* dim=0 */ (__pyx_v_calibrated_pulse.data + __pyx_t_14 * __pyx_v_calibrated_pulse.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_calibration.data + __pyx_t_13 * __pyx_v_calibration.strides[0]) )));
+
+      /* "Timing.pyx":81
+ *     #calibrate the raw spectrum
+ *     for i in range(num_pulses):
+ *         if int(channels[i]) < calib_len:             # <<<<<<<<<<<<<<
+ *             calibrated_pulse[i]=calibration[int(channels[i])]
+ * 
+ */
+    }
+  }
+
+  /* "Timing.pyx":84
+ *             calibrated_pulse[i]=calibration[int(channels[i])]
+ * 
+ *     cdef int num_roi_pulses=0             # <<<<<<<<<<<<<<
+ *     #first determine the number of pulses that are in the ROI
+ *     for i in range(num_pulses):
+ */
+  __pyx_v_num_roi_pulses = 0;
+
+  /* "Timing.pyx":86
+ *     cdef int num_roi_pulses=0
+ *     #first determine the number of pulses that are in the ROI
+ *     for i in range(num_pulses):             # <<<<<<<<<<<<<<
+ *         if calibrated_pulse[i]>=lower and calibrated_pulse[i]<=upper:
+ *             num_roi_pulses+=1
+ */
+  __pyx_t_7 = __pyx_v_num_pulses;
+  __pyx_t_8 = __pyx_t_7;
+  for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
+    __pyx_v_i = __pyx_t_9;
+
+    /* "Timing.pyx":87
+ *     #first determine the number of pulses that are in the ROI
+ *     for i in range(num_pulses):
+ *         if calibrated_pulse[i]>=lower and calibrated_pulse[i]<=upper:             # <<<<<<<<<<<<<<
+ *             num_roi_pulses+=1
+ * 
+ */
+    __pyx_t_10 = __pyx_v_i;
+    __pyx_t_11 = -1;
+    if (__pyx_t_10 < 0) {
+      __pyx_t_10 += __pyx_v_calibrated_pulse.shape[0];
+      if (unlikely(__pyx_t_10 < 0)) __pyx_t_11 = 0;
+    } else if (unlikely(__pyx_t_10 >= __pyx_v_calibrated_pulse.shape[0])) __pyx_t_11 = 0;
+    if (unlikely(__pyx_t_11 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_11);
+      __PYX_ERR(0, 87, __pyx_L1_error)
+    }
+    __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_calibrated_pulse.data + __pyx_t_10 * __pyx_v_calibrated_pulse.strides[0]) ))) >= __pyx_v_lower) != 0);
+    if (__pyx_t_15) {
+    } else {
+      __pyx_t_12 = __pyx_t_15;
+      goto __pyx_L9_bool_binop_done;
+    }
+    __pyx_t_10 = __pyx_v_i;
+    __pyx_t_11 = -1;
+    if (__pyx_t_10 < 0) {
+      __pyx_t_10 += __pyx_v_calibrated_pulse.shape[0];
+      if (unlikely(__pyx_t_10 < 0)) __pyx_t_11 = 0;
+    } else if (unlikely(__pyx_t_10 >= __pyx_v_calibrated_pulse.shape[0])) __pyx_t_11 = 0;
+    if (unlikely(__pyx_t_11 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_11);
+      __PYX_ERR(0, 87, __pyx_L1_error)
+    }
+    __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_calibrated_pulse.data + __pyx_t_10 * __pyx_v_calibrated_pulse.strides[0]) ))) <= __pyx_v_upper) != 0);
+    __pyx_t_12 = __pyx_t_15;
+    __pyx_L9_bool_binop_done:;
+    if (__pyx_t_12) {
+
+      /* "Timing.pyx":88
+ *     for i in range(num_pulses):
+ *         if calibrated_pulse[i]>=lower and calibrated_pulse[i]<=upper:
+ *             num_roi_pulses+=1             # <<<<<<<<<<<<<<
+ * 
+ *     cdef double[:] roi_pulses=np.zeros(num_roi_pulses)
+ */
+      __pyx_v_num_roi_pulses = (__pyx_v_num_roi_pulses + 1);
+
+      /* "Timing.pyx":87
+ *     #first determine the number of pulses that are in the ROI
+ *     for i in range(num_pulses):
+ *         if calibrated_pulse[i]>=lower and calibrated_pulse[i]<=upper:             # <<<<<<<<<<<<<<
+ *             num_roi_pulses+=1
+ * 
+ */
+    }
+  }
+
+  /* "Timing.pyx":90
+ *             num_roi_pulses+=1
+ * 
+ *     cdef double[:] roi_pulses=np.zeros(num_roi_pulses)             # <<<<<<<<<<<<<<
+ *     cdef double[:] roi_times=np.zeros(num_roi_pulses)
+ *     #split into two regions and keep the associate detector time with the pulse
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_roi_pulses); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  __pyx_t_3 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_5, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_v_roi_pulses = __pyx_t_6;
+  __pyx_t_6.memview = NULL;
+  __pyx_t_6.data = NULL;
+
+  /* "Timing.pyx":91
+ * 
+ *     cdef double[:] roi_pulses=np.zeros(num_roi_pulses)
+ *     cdef double[:] roi_times=np.zeros(num_roi_pulses)             # <<<<<<<<<<<<<<
+ *     #split into two regions and keep the associate detector time with the pulse
+ *     for i in range(s):
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_num_roi_pulses); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_5 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_4, function);
+    }
+  }
+  __pyx_t_3 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_5, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_v_roi_times = __pyx_t_6;
+  __pyx_t_6.memview = NULL;
+  __pyx_t_6.data = NULL;
+
+  /* "Timing.pyx":93
+ *     cdef double[:] roi_times=np.zeros(num_roi_pulses)
+ *     #split into two regions and keep the associate detector time with the pulse
+ *     for i in range(s):             # <<<<<<<<<<<<<<
+ *         try:
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ */
+  __pyx_t_7 = __pyx_v_s;
+  __pyx_t_8 = __pyx_t_7;
+  for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
+    __pyx_v_i = __pyx_t_9;
+
+    /* "Timing.pyx":94
+ *     #split into two regions and keep the associate detector time with the pulse
+ *     for i in range(s):
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 # region1_output[int(channels[d_loc])]+=1
+ */
+    {
+      __Pyx_PyThreadState_declare
+      __Pyx_PyThreadState_assign
+      __Pyx_ExceptionSave(&__pyx_t_16, &__pyx_t_17, &__pyx_t_18);
+      __Pyx_XGOTREF(__pyx_t_16);
+      __Pyx_XGOTREF(__pyx_t_17);
+      __Pyx_XGOTREF(__pyx_t_18);
+      /*try:*/ {
+
+        /* "Timing.pyx":95
+ *     for i in range(s):
+ *         try:
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:             # <<<<<<<<<<<<<<
+ *                 # region1_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1
+ */
+        while (1) {
+          __pyx_t_10 = __pyx_v_d_loc;
+          __pyx_t_11 = -1;
+          if (__pyx_t_10 < 0) {
+            __pyx_t_10 += __pyx_v_detector_time.shape[0];
+            if (unlikely(__pyx_t_10 < 0)) __pyx_t_11 = 0;
+          } else if (unlikely(__pyx_t_10 >= __pyx_v_detector_time.shape[0])) __pyx_t_11 = 0;
+          if (unlikely(__pyx_t_11 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_11);
+            __PYX_ERR(0, 95, __pyx_L13_error)
+          }
+          __pyx_t_13 = __pyx_v_i;
+          __pyx_t_11 = -1;
+          if (__pyx_t_13 < 0) {
+            __pyx_t_13 += __pyx_v_sync_time.shape[0];
+            if (unlikely(__pyx_t_13 < 0)) __pyx_t_11 = 0;
+          } else if (unlikely(__pyx_t_13 >= __pyx_v_sync_time.shape[0])) __pyx_t_11 = 0;
+          if (unlikely(__pyx_t_11 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_11);
+            __PYX_ERR(0, 95, __pyx_L13_error)
+          }
+          __pyx_t_12 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_10 * __pyx_v_detector_time.strides[0]) ))) < ((*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_13 * __pyx_v_sync_time.strides[0]) ))) + __pyx_v_delta_time)) != 0);
+          if (!__pyx_t_12) break;
+
+          /* "Timing.pyx":97
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 # region1_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i+1]:
+ *                 # region2_output[int(channels[d_loc])]+=1
+ */
+          __pyx_v_d_loc = (__pyx_v_d_loc + 1);
+        }
+
+        /* "Timing.pyx":98
+ *                 # region1_output[int(channels[d_loc])]+=1
+ *                 d_loc+=1
+ *             while detector_time[d_loc]<sync_time[i+1]:             # <<<<<<<<<<<<<<
+ *                 # region2_output[int(channels[d_loc])]+=1
+ *                 if calibrated_pulse[d_loc]>=lower and calibrated_pulse[d_loc]<=upper:
+ */
+        while (1) {
+          __pyx_t_13 = __pyx_v_d_loc;
+          __pyx_t_11 = -1;
+          if (__pyx_t_13 < 0) {
+            __pyx_t_13 += __pyx_v_detector_time.shape[0];
+            if (unlikely(__pyx_t_13 < 0)) __pyx_t_11 = 0;
+          } else if (unlikely(__pyx_t_13 >= __pyx_v_detector_time.shape[0])) __pyx_t_11 = 0;
+          if (unlikely(__pyx_t_11 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_11);
+            __PYX_ERR(0, 98, __pyx_L13_error)
+          }
+          __pyx_t_10 = (__pyx_v_i + 1);
+          __pyx_t_11 = -1;
+          if (__pyx_t_10 < 0) {
+            __pyx_t_10 += __pyx_v_sync_time.shape[0];
+            if (unlikely(__pyx_t_10 < 0)) __pyx_t_11 = 0;
+          } else if (unlikely(__pyx_t_10 >= __pyx_v_sync_time.shape[0])) __pyx_t_11 = 0;
+          if (unlikely(__pyx_t_11 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_11);
+            __PYX_ERR(0, 98, __pyx_L13_error)
+          }
+          __pyx_t_12 = (((*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_13 * __pyx_v_detector_time.strides[0]) ))) < (*((double *) ( /* dim=0 */ (__pyx_v_sync_time.data + __pyx_t_10 * __pyx_v_sync_time.strides[0]) )))) != 0);
+          if (!__pyx_t_12) break;
+
+          /* "Timing.pyx":100
+ *             while detector_time[d_loc]<sync_time[i+1]:
+ *                 # region2_output[int(channels[d_loc])]+=1
+ *                 if calibrated_pulse[d_loc]>=lower and calibrated_pulse[d_loc]<=upper:             # <<<<<<<<<<<<<<
+ *                     roi_pulses[j]=calibrated_pulse[d_loc]
+ *                     roi_times[j]=detector_time[d_loc]
+ */
+          __pyx_t_10 = __pyx_v_d_loc;
+          __pyx_t_11 = -1;
+          if (__pyx_t_10 < 0) {
+            __pyx_t_10 += __pyx_v_calibrated_pulse.shape[0];
+            if (unlikely(__pyx_t_10 < 0)) __pyx_t_11 = 0;
+          } else if (unlikely(__pyx_t_10 >= __pyx_v_calibrated_pulse.shape[0])) __pyx_t_11 = 0;
+          if (unlikely(__pyx_t_11 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_11);
+            __PYX_ERR(0, 100, __pyx_L13_error)
+          }
+          __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_calibrated_pulse.data + __pyx_t_10 * __pyx_v_calibrated_pulse.strides[0]) ))) >= __pyx_v_lower) != 0);
+          if (__pyx_t_15) {
+          } else {
+            __pyx_t_12 = __pyx_t_15;
+            goto __pyx_L26_bool_binop_done;
+          }
+          __pyx_t_10 = __pyx_v_d_loc;
+          __pyx_t_11 = -1;
+          if (__pyx_t_10 < 0) {
+            __pyx_t_10 += __pyx_v_calibrated_pulse.shape[0];
+            if (unlikely(__pyx_t_10 < 0)) __pyx_t_11 = 0;
+          } else if (unlikely(__pyx_t_10 >= __pyx_v_calibrated_pulse.shape[0])) __pyx_t_11 = 0;
+          if (unlikely(__pyx_t_11 != -1)) {
+            __Pyx_RaiseBufferIndexError(__pyx_t_11);
+            __PYX_ERR(0, 100, __pyx_L13_error)
+          }
+          __pyx_t_15 = (((*((double *) ( /* dim=0 */ (__pyx_v_calibrated_pulse.data + __pyx_t_10 * __pyx_v_calibrated_pulse.strides[0]) ))) <= __pyx_v_upper) != 0);
+          __pyx_t_12 = __pyx_t_15;
+          __pyx_L26_bool_binop_done:;
+          if (__pyx_t_12) {
+
+            /* "Timing.pyx":101
+ *                 # region2_output[int(channels[d_loc])]+=1
+ *                 if calibrated_pulse[d_loc]>=lower and calibrated_pulse[d_loc]<=upper:
+ *                     roi_pulses[j]=calibrated_pulse[d_loc]             # <<<<<<<<<<<<<<
+ *                     roi_times[j]=detector_time[d_loc]
+ *                     j+=1
+ */
+            __pyx_t_10 = __pyx_v_d_loc;
+            __pyx_t_11 = -1;
+            if (__pyx_t_10 < 0) {
+              __pyx_t_10 += __pyx_v_calibrated_pulse.shape[0];
+              if (unlikely(__pyx_t_10 < 0)) __pyx_t_11 = 0;
+            } else if (unlikely(__pyx_t_10 >= __pyx_v_calibrated_pulse.shape[0])) __pyx_t_11 = 0;
+            if (unlikely(__pyx_t_11 != -1)) {
+              __Pyx_RaiseBufferIndexError(__pyx_t_11);
+              __PYX_ERR(0, 101, __pyx_L13_error)
+            }
+            __pyx_t_13 = __pyx_v_j;
+            __pyx_t_11 = -1;
+            if (__pyx_t_13 < 0) {
+              __pyx_t_13 += __pyx_v_roi_pulses.shape[0];
+              if (unlikely(__pyx_t_13 < 0)) __pyx_t_11 = 0;
+            } else if (unlikely(__pyx_t_13 >= __pyx_v_roi_pulses.shape[0])) __pyx_t_11 = 0;
+            if (unlikely(__pyx_t_11 != -1)) {
+              __Pyx_RaiseBufferIndexError(__pyx_t_11);
+              __PYX_ERR(0, 101, __pyx_L13_error)
+            }
+            *((double *) ( /* dim=0 */ (__pyx_v_roi_pulses.data + __pyx_t_13 * __pyx_v_roi_pulses.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_calibrated_pulse.data + __pyx_t_10 * __pyx_v_calibrated_pulse.strides[0]) )));
+
+            /* "Timing.pyx":102
+ *                 if calibrated_pulse[d_loc]>=lower and calibrated_pulse[d_loc]<=upper:
+ *                     roi_pulses[j]=calibrated_pulse[d_loc]
+ *                     roi_times[j]=detector_time[d_loc]             # <<<<<<<<<<<<<<
+ *                     j+=1
+ *                 d_loc+=1
+ */
+            __pyx_t_10 = __pyx_v_d_loc;
+            __pyx_t_11 = -1;
+            if (__pyx_t_10 < 0) {
+              __pyx_t_10 += __pyx_v_detector_time.shape[0];
+              if (unlikely(__pyx_t_10 < 0)) __pyx_t_11 = 0;
+            } else if (unlikely(__pyx_t_10 >= __pyx_v_detector_time.shape[0])) __pyx_t_11 = 0;
+            if (unlikely(__pyx_t_11 != -1)) {
+              __Pyx_RaiseBufferIndexError(__pyx_t_11);
+              __PYX_ERR(0, 102, __pyx_L13_error)
+            }
+            __pyx_t_13 = __pyx_v_j;
+            __pyx_t_11 = -1;
+            if (__pyx_t_13 < 0) {
+              __pyx_t_13 += __pyx_v_roi_times.shape[0];
+              if (unlikely(__pyx_t_13 < 0)) __pyx_t_11 = 0;
+            } else if (unlikely(__pyx_t_13 >= __pyx_v_roi_times.shape[0])) __pyx_t_11 = 0;
+            if (unlikely(__pyx_t_11 != -1)) {
+              __Pyx_RaiseBufferIndexError(__pyx_t_11);
+              __PYX_ERR(0, 102, __pyx_L13_error)
+            }
+            *((double *) ( /* dim=0 */ (__pyx_v_roi_times.data + __pyx_t_13 * __pyx_v_roi_times.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_detector_time.data + __pyx_t_10 * __pyx_v_detector_time.strides[0]) )));
+
+            /* "Timing.pyx":103
+ *                     roi_pulses[j]=calibrated_pulse[d_loc]
+ *                     roi_times[j]=detector_time[d_loc]
+ *                     j+=1             # <<<<<<<<<<<<<<
+ *                 d_loc+=1
+ *         except:
+ */
+            __pyx_v_j = (__pyx_v_j + 1);
+
+            /* "Timing.pyx":100
+ *             while detector_time[d_loc]<sync_time[i+1]:
+ *                 # region2_output[int(channels[d_loc])]+=1
+ *                 if calibrated_pulse[d_loc]>=lower and calibrated_pulse[d_loc]<=upper:             # <<<<<<<<<<<<<<
+ *                     roi_pulses[j]=calibrated_pulse[d_loc]
+ *                     roi_times[j]=detector_time[d_loc]
+ */
+          }
+
+          /* "Timing.pyx":104
+ *                     roi_times[j]=detector_time[d_loc]
+ *                     j+=1
+ *                 d_loc+=1             # <<<<<<<<<<<<<<
+ *         except:
+ *             a=True
+ */
+          __pyx_v_d_loc = (__pyx_v_d_loc + 1);
+        }
+
+        /* "Timing.pyx":94
+ *     #split into two regions and keep the associate detector time with the pulse
+ *     for i in range(s):
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 # region1_output[int(channels[d_loc])]+=1
+ */
+      }
+      __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
+      __Pyx_XDECREF(__pyx_t_18); __pyx_t_18 = 0;
+      goto __pyx_L20_try_end;
+      __pyx_L13_error:;
+      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
+
+      /* "Timing.pyx":105
+ *                     j+=1
+ *                 d_loc+=1
+ *         except:             # <<<<<<<<<<<<<<
+ *             a=True
+ * 
+ */
+      /*except:*/ {
+        __Pyx_AddTraceback("Timing.ROI_Timing", __pyx_clineno, __pyx_lineno, __pyx_filename);
+        if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_4, &__pyx_t_2) < 0) __PYX_ERR(0, 105, __pyx_L15_except_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_GOTREF(__pyx_t_2);
+
+        /* "Timing.pyx":106
+ *                 d_loc+=1
+ *         except:
+ *             a=True             # <<<<<<<<<<<<<<
+ * 
+ *     return roi_pulses[0:j-1], roi_times[0:j-1]
+ */
+        __pyx_v_a = 1;
+        __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+        goto __pyx_L14_exception_handled;
+      }
+      __pyx_L15_except_error:;
+
+      /* "Timing.pyx":94
+ *     #split into two regions and keep the associate detector time with the pulse
+ *     for i in range(s):
+ *         try:             # <<<<<<<<<<<<<<
+ *             while detector_time[d_loc]<sync_time[i]+delta_time:
+ *                 # region1_output[int(channels[d_loc])]+=1
+ */
+      __Pyx_XGIVEREF(__pyx_t_16);
+      __Pyx_XGIVEREF(__pyx_t_17);
+      __Pyx_XGIVEREF(__pyx_t_18);
+      __Pyx_ExceptionReset(__pyx_t_16, __pyx_t_17, __pyx_t_18);
+      goto __pyx_L1_error;
+      __pyx_L14_exception_handled:;
+      __Pyx_XGIVEREF(__pyx_t_16);
+      __Pyx_XGIVEREF(__pyx_t_17);
+      __Pyx_XGIVEREF(__pyx_t_18);
+      __Pyx_ExceptionReset(__pyx_t_16, __pyx_t_17, __pyx_t_18);
+      __pyx_L20_try_end:;
+    }
+  }
+
+  /* "Timing.pyx":108
+ *             a=True
+ * 
+ *     return roi_pulses[0:j-1], roi_times[0:j-1]             # <<<<<<<<<<<<<<
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_6.data = __pyx_v_roi_pulses.data;
+  __pyx_t_6.memview = __pyx_v_roi_pulses.memview;
+  __PYX_INC_MEMVIEW(&__pyx_t_6, 0);
+  __pyx_t_7 = -1;
+  if (unlikely(__pyx_memoryview_slice_memviewslice(
+    &__pyx_t_6,
+    __pyx_v_roi_pulses.shape[0], __pyx_v_roi_pulses.strides[0], __pyx_v_roi_pulses.suboffsets[0],
+    0,
+    0,
+    &__pyx_t_7,
+    0,
+    (__pyx_v_j - 1),
+    0,
+    1,
+    1,
+    0,
+    1) < 0))
+{
+    __PYX_ERR(0, 108, __pyx_L1_error)
+}
+
+__pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 108, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
+  __pyx_t_6.memview = NULL;
+  __pyx_t_6.data = NULL;
+  __pyx_t_6.data = __pyx_v_roi_times.data;
+  __pyx_t_6.memview = __pyx_v_roi_times.memview;
+  __PYX_INC_MEMVIEW(&__pyx_t_6, 0);
+  __pyx_t_7 = -1;
+  if (unlikely(__pyx_memoryview_slice_memviewslice(
+    &__pyx_t_6,
+    __pyx_v_roi_times.shape[0], __pyx_v_roi_times.strides[0], __pyx_v_roi_times.suboffsets[0],
+    0,
+    0,
+    &__pyx_t_7,
+    0,
+    (__pyx_v_j - 1),
+    0,
+    1,
+    1,
+    0,
+    1) < 0))
+{
+    __PYX_ERR(0, 108, __pyx_L1_error)
+}
+
+__pyx_t_4 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 108, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
+  __pyx_t_6.memview = NULL;
+  __pyx_t_6.data = NULL;
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 108, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_4);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_4);
+  __pyx_t_2 = 0;
+  __pyx_t_4 = 0;
+  __pyx_r = __pyx_t_3;
+  __pyx_t_3 = 0;
+  goto __pyx_L0;
+
+  /* "Timing.pyx":63
+ *     return region1_output, region2_output
+ * 
+ * def ROI_Timing(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
+ *                double[:] channels,double delta_time,int num_channels,
+ *                double[:] calibration, double upper, double lower):
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
+  __Pyx_AddTraceback("Timing.ROI_Timing", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __PYX_XDEC_MEMVIEW(&__pyx_v_calibrated_pulse, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_roi_pulses, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_roi_times, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_sync_time, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_detector_time, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_channels, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_calibration, 1);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -16680,19 +18324,25 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_b_O, __pyx_k_O, sizeof(__pyx_k_O), 0, 0, 0, 1},
   {&__pyx_kp_s_Out_of_bounds_on_buffer_access_a, __pyx_k_Out_of_bounds_on_buffer_access_a, sizeof(__pyx_k_Out_of_bounds_on_buffer_access_a), 0, 0, 1, 0},
   {&__pyx_n_s_PickleError, __pyx_k_PickleError, sizeof(__pyx_k_PickleError), 0, 0, 1, 1},
+  {&__pyx_n_s_ROI_Timing, __pyx_k_ROI_Timing, sizeof(__pyx_k_ROI_Timing), 0, 0, 1, 1},
   {&__pyx_n_s_Timing, __pyx_k_Timing, sizeof(__pyx_k_Timing), 0, 0, 1, 1},
   {&__pyx_kp_s_Timing_pyx, __pyx_k_Timing_pyx, sizeof(__pyx_k_Timing_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_n_s_View_MemoryView, __pyx_k_View_MemoryView, sizeof(__pyx_k_View_MemoryView), 0, 0, 1, 1},
+  {&__pyx_n_s_a, __pyx_k_a, sizeof(__pyx_k_a), 0, 0, 1, 1},
   {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
   {&__pyx_n_s_b, __pyx_k_b, sizeof(__pyx_k_b), 0, 0, 1, 1},
   {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
   {&__pyx_n_s_bins, __pyx_k_bins, sizeof(__pyx_k_bins), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
   {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
+  {&__pyx_n_s_calib_len, __pyx_k_calib_len, sizeof(__pyx_k_calib_len), 0, 0, 1, 1},
+  {&__pyx_n_s_calibrated_pulse, __pyx_k_calibrated_pulse, sizeof(__pyx_k_calibrated_pulse), 0, 0, 1, 1},
+  {&__pyx_n_s_calibration, __pyx_k_calibration, sizeof(__pyx_k_calibration), 0, 0, 1, 1},
   {&__pyx_n_s_channel_timing, __pyx_k_channel_timing, sizeof(__pyx_k_channel_timing), 0, 0, 1, 1},
+  {&__pyx_n_s_channel_timing_roi, __pyx_k_channel_timing_roi, sizeof(__pyx_k_channel_timing_roi), 0, 0, 1, 1},
   {&__pyx_n_s_channels, __pyx_k_channels, sizeof(__pyx_k_channels), 0, 0, 1, 1},
   {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
@@ -16719,6 +18369,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
   {&__pyx_n_s_j, __pyx_k_j, sizeof(__pyx_k_j), 0, 0, 1, 1},
+  {&__pyx_n_s_lower, __pyx_k_lower, sizeof(__pyx_k_lower), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
   {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
@@ -16729,6 +18380,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
   {&__pyx_n_s_np, __pyx_k_np, sizeof(__pyx_k_np), 0, 0, 1, 1},
   {&__pyx_n_s_num_channels, __pyx_k_num_channels, sizeof(__pyx_k_num_channels), 0, 0, 1, 1},
+  {&__pyx_n_s_num_pulses, __pyx_k_num_pulses, sizeof(__pyx_k_num_pulses), 0, 0, 1, 1},
+  {&__pyx_n_s_num_roi_pulses, __pyx_k_num_roi_pulses, sizeof(__pyx_k_num_roi_pulses), 0, 0, 1, 1},
   {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
   {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
   {&__pyx_n_s_output, __pyx_k_output, sizeof(__pyx_k_output), 0, 0, 1, 1},
@@ -16748,6 +18401,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
   {&__pyx_n_s_region1_output, __pyx_k_region1_output, sizeof(__pyx_k_region1_output), 0, 0, 1, 1},
   {&__pyx_n_s_region2_output, __pyx_k_region2_output, sizeof(__pyx_k_region2_output), 0, 0, 1, 1},
+  {&__pyx_n_s_roi_pulses, __pyx_k_roi_pulses, sizeof(__pyx_k_roi_pulses), 0, 0, 1, 1},
+  {&__pyx_n_s_roi_times, __pyx_k_roi_times, sizeof(__pyx_k_roi_times), 0, 0, 1, 1},
   {&__pyx_n_s_s, __pyx_k_s, sizeof(__pyx_k_s), 0, 0, 1, 1},
   {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
@@ -16769,6 +18424,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
   {&__pyx_n_s_update, __pyx_k_update, sizeof(__pyx_k_update), 0, 0, 1, 1},
+  {&__pyx_n_s_upper, __pyx_k_upper, sizeof(__pyx_k_upper), 0, 0, 1, 1},
   {&__pyx_n_s_zeros, __pyx_k_zeros, sizeof(__pyx_k_zeros), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
@@ -16988,22 +18644,46 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     '''Used to find the time spread of the pulses'''
  *     cdef int i,j
  */
-  __pyx_tuple__19 = PyTuple_Pack(9, __pyx_n_s_sync_time, __pyx_n_s_detector_time, __pyx_n_s_s, __pyx_n_s_bins, __pyx_n_s_b, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_dd, __pyx_n_s_output); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 2, __pyx_L1_error)
+  __pyx_tuple__19 = PyTuple_Pack(10, __pyx_n_s_sync_time, __pyx_n_s_detector_time, __pyx_n_s_s, __pyx_n_s_bins, __pyx_n_s_b, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_dd, __pyx_n_s_output, __pyx_n_s_a); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
-  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Timing_pyx, __pyx_n_s_time_point, 2, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 2, __pyx_L1_error)
+  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(5, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Timing_pyx, __pyx_n_s_time_point, 2, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 2, __pyx_L1_error)
 
-  /* "Timing.pyx":17
+  /* "Timing.pyx":20
  *     return output
  * 
  * def channel_timing(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
  *                    double[:] channels,double delta_time,int num_channels):
- *     cdef int d_loc=0
+ *     '''Used to split the total into different regions'''
  */
-  __pyx_tuple__21 = PyTuple_Pack(11, __pyx_n_s_sync_time, __pyx_n_s_s, __pyx_n_s_detector_time, __pyx_n_s_channels, __pyx_n_s_delta_time, __pyx_n_s_num_channels, __pyx_n_s_d_loc, __pyx_n_s_split_loc, __pyx_n_s_i, __pyx_n_s_region1_output, __pyx_n_s_region2_output); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_tuple__21 = PyTuple_Pack(12, __pyx_n_s_sync_time, __pyx_n_s_s, __pyx_n_s_detector_time, __pyx_n_s_channels, __pyx_n_s_delta_time, __pyx_n_s_num_channels, __pyx_n_s_d_loc, __pyx_n_s_split_loc, __pyx_n_s_i, __pyx_n_s_region1_output, __pyx_n_s_region2_output, __pyx_n_s_a); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
-  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(6, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Timing_pyx, __pyx_n_s_channel_timing, 17, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(6, 0, 12, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Timing_pyx, __pyx_n_s_channel_timing, 20, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 20, __pyx_L1_error)
+
+  /* "Timing.pyx":42
+ *     return region1_output, region2_output
+ * 
+ * def channel_timing_roi(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
+ *                    double[:] channels,double delta_time,int num_channels):
+ *     cdef int d_loc=0
+ */
+  __pyx_tuple__23 = PyTuple_Pack(12, __pyx_n_s_sync_time, __pyx_n_s_s, __pyx_n_s_detector_time, __pyx_n_s_channels, __pyx_n_s_delta_time, __pyx_n_s_num_channels, __pyx_n_s_d_loc, __pyx_n_s_split_loc, __pyx_n_s_i, __pyx_n_s_region1_output, __pyx_n_s_region2_output, __pyx_n_s_a); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__23);
+  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(6, 0, 12, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Timing_pyx, __pyx_n_s_channel_timing_roi, 42, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 42, __pyx_L1_error)
+
+  /* "Timing.pyx":63
+ *     return region1_output, region2_output
+ * 
+ * def ROI_Timing(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
+ *                double[:] channels,double delta_time,int num_channels,
+ *                double[:] calibration, double upper, double lower):
+ */
+  __pyx_tuple__25 = PyTuple_Pack(20, __pyx_n_s_sync_time, __pyx_n_s_s, __pyx_n_s_detector_time, __pyx_n_s_channels, __pyx_n_s_delta_time, __pyx_n_s_num_channels, __pyx_n_s_calibration, __pyx_n_s_upper, __pyx_n_s_lower, __pyx_n_s_d_loc, __pyx_n_s_split_loc, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_calib_len, __pyx_n_s_num_pulses, __pyx_n_s_calibrated_pulse, __pyx_n_s_num_roi_pulses, __pyx_n_s_roi_pulses, __pyx_n_s_roi_times, __pyx_n_s_a); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__25);
+  __Pyx_GIVEREF(__pyx_tuple__25);
+  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(9, 0, 20, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Timing_pyx, __pyx_n_s_ROI_Timing, 63, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(0, 63, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -17012,9 +18692,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(1, 286, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__23);
-  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_tuple__27 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(1, 286, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__27);
+  __Pyx_GIVEREF(__pyx_tuple__27);
 
   /* "View.MemoryView":287
  * 
@@ -17023,9 +18703,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(1, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__24);
-  __Pyx_GIVEREF(__pyx_tuple__24);
+  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(1, 287, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__28);
+  __Pyx_GIVEREF(__pyx_tuple__28);
 
   /* "View.MemoryView":288
  * cdef generic = Enum("<strided and direct or indirect>")
@@ -17034,9 +18714,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__25 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(1, 288, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__25);
-  __Pyx_GIVEREF(__pyx_tuple__25);
+  __pyx_tuple__29 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(1, 288, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__29);
+  __Pyx_GIVEREF(__pyx_tuple__29);
 
   /* "View.MemoryView":291
  * 
@@ -17045,9 +18725,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(1, 291, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__26);
-  __Pyx_GIVEREF(__pyx_tuple__26);
+  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(1, 291, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__30);
+  __Pyx_GIVEREF(__pyx_tuple__30);
 
   /* "View.MemoryView":292
  * 
@@ -17056,19 +18736,19 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__27 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(1, 292, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__27);
-  __Pyx_GIVEREF(__pyx_tuple__27);
+  __pyx_tuple__31 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(1, 292, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__31);
+  __Pyx_GIVEREF(__pyx_tuple__31);
 
   /* "(tree fragment)":1
  * def __pyx_unpickle_Enum(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
  */
-  __pyx_tuple__28 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__28);
-  __Pyx_GIVEREF(__pyx_tuple__28);
-  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Enum, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__32 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__32);
+  __Pyx_GIVEREF(__pyx_tuple__32);
+  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Enum, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -17437,16 +19117,40 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_time_point, __pyx_t_1) < 0) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "Timing.pyx":17
+  /* "Timing.pyx":20
  *     return output
  * 
  * def channel_timing(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
  *                    double[:] channels,double delta_time,int num_channels):
+ *     '''Used to split the total into different regions'''
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6Timing_3channel_timing, NULL, __pyx_n_s_Timing); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_channel_timing, __pyx_t_1) < 0) __PYX_ERR(0, 20, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "Timing.pyx":42
+ *     return region1_output, region2_output
+ * 
+ * def channel_timing_roi(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
+ *                    double[:] channels,double delta_time,int num_channels):
  *     cdef int d_loc=0
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6Timing_3channel_timing, NULL, __pyx_n_s_Timing); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6Timing_5channel_timing_roi, NULL, __pyx_n_s_Timing); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_channel_timing, __pyx_t_1) < 0) __PYX_ERR(0, 17, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_channel_timing_roi, __pyx_t_1) < 0) __PYX_ERR(0, 42, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "Timing.pyx":63
+ *     return region1_output, region2_output
+ * 
+ * def ROI_Timing(double[:] sync_time,int s, double[:] detector_time,             # <<<<<<<<<<<<<<
+ *                double[:] channels,double delta_time,int num_channels,
+ *                double[:] calibration, double upper, double lower):
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6Timing_7ROI_Timing, NULL, __pyx_n_s_Timing); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ROI_Timing, __pyx_t_1) < 0) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "Timing.pyx":1
@@ -17479,7 +19183,7 @@ if (!__Pyx_RefNanny) {
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__23, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 286, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__27, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 286, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(generic);
   __Pyx_DECREF_SET(generic, __pyx_t_1);
@@ -17493,7 +19197,7 @@ if (!__Pyx_RefNanny) {
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__24, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 287, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 287, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(strided);
   __Pyx_DECREF_SET(strided, __pyx_t_1);
@@ -17507,7 +19211,7 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__25, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 288, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__29, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 288, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(indirect);
   __Pyx_DECREF_SET(indirect, __pyx_t_1);
@@ -17521,7 +19225,7 @@ if (!__Pyx_RefNanny) {
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__26, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 291, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__30, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 291, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(contiguous);
   __Pyx_DECREF_SET(contiguous, __pyx_t_1);
@@ -17535,7 +19239,7 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__27, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 292, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__31, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 292, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XGOTREF(indirect_contiguous);
   __Pyx_DECREF_SET(indirect_contiguous, __pyx_t_1);
@@ -18142,6 +19846,62 @@ static void __Pyx_RaiseBufferIndexError(int axis) {
      "Out of bounds on buffer access (axis %d)", axis);
 }
 
+/* GetTopmostException */
+#if CYTHON_USE_EXC_INFO_STACK
+static _PyErr_StackItem *
+__Pyx_PyErr_GetTopmostException(PyThreadState *tstate)
+{
+    _PyErr_StackItem *exc_info = tstate->exc_info;
+    while ((exc_info->exc_type == NULL || exc_info->exc_type == Py_None) &&
+           exc_info->previous_item != NULL)
+    {
+        exc_info = exc_info->previous_item;
+    }
+    return exc_info;
+}
+#endif
+
+/* SaveResetException */
+#if CYTHON_FAST_THREAD_STATE
+static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
+    #if CYTHON_USE_EXC_INFO_STACK
+    _PyErr_StackItem *exc_info = __Pyx_PyErr_GetTopmostException(tstate);
+    *type = exc_info->exc_type;
+    *value = exc_info->exc_value;
+    *tb = exc_info->exc_traceback;
+    #else
+    *type = tstate->exc_type;
+    *value = tstate->exc_value;
+    *tb = tstate->exc_traceback;
+    #endif
+    Py_XINCREF(*type);
+    Py_XINCREF(*value);
+    Py_XINCREF(*tb);
+}
+static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
+    PyObject *tmp_type, *tmp_value, *tmp_tb;
+    #if CYTHON_USE_EXC_INFO_STACK
+    _PyErr_StackItem *exc_info = tstate->exc_info;
+    tmp_type = exc_info->exc_type;
+    tmp_value = exc_info->exc_value;
+    tmp_tb = exc_info->exc_traceback;
+    exc_info->exc_type = type;
+    exc_info->exc_value = value;
+    exc_info->exc_traceback = tb;
+    #else
+    tmp_type = tstate->exc_type;
+    tmp_value = tstate->exc_value;
+    tmp_tb = tstate->exc_traceback;
+    tstate->exc_type = type;
+    tstate->exc_value = value;
+    tstate->exc_traceback = tb;
+    #endif
+    Py_XDECREF(tmp_type);
+    Py_XDECREF(tmp_value);
+    Py_XDECREF(tmp_tb);
+}
+#endif
+
 /* MemviewSliceInit */
 static int
 __Pyx_init_memviewslice(struct __pyx_memoryview_obj *memview,
@@ -18273,6 +20033,90 @@ static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *memslice,
         memslice->memview = NULL;
     }
 }
+
+/* GetException */
+#if CYTHON_FAST_THREAD_STATE
+static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb)
+#else
+static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb)
+#endif
+{
+    PyObject *local_type, *local_value, *local_tb;
+#if CYTHON_FAST_THREAD_STATE
+    PyObject *tmp_type, *tmp_value, *tmp_tb;
+    local_type = tstate->curexc_type;
+    local_value = tstate->curexc_value;
+    local_tb = tstate->curexc_traceback;
+    tstate->curexc_type = 0;
+    tstate->curexc_value = 0;
+    tstate->curexc_traceback = 0;
+#else
+    PyErr_Fetch(&local_type, &local_value, &local_tb);
+#endif
+    PyErr_NormalizeException(&local_type, &local_value, &local_tb);
+#if CYTHON_FAST_THREAD_STATE
+    if (unlikely(tstate->curexc_type))
+#else
+    if (unlikely(PyErr_Occurred()))
+#endif
+        goto bad;
+    #if PY_MAJOR_VERSION >= 3
+    if (local_tb) {
+        if (unlikely(PyException_SetTraceback(local_value, local_tb) < 0))
+            goto bad;
+    }
+    #endif
+    Py_XINCREF(local_tb);
+    Py_XINCREF(local_type);
+    Py_XINCREF(local_value);
+    *type = local_type;
+    *value = local_value;
+    *tb = local_tb;
+#if CYTHON_FAST_THREAD_STATE
+    #if CYTHON_USE_EXC_INFO_STACK
+    {
+        _PyErr_StackItem *exc_info = tstate->exc_info;
+        tmp_type = exc_info->exc_type;
+        tmp_value = exc_info->exc_value;
+        tmp_tb = exc_info->exc_traceback;
+        exc_info->exc_type = local_type;
+        exc_info->exc_value = local_value;
+        exc_info->exc_traceback = local_tb;
+    }
+    #else
+    tmp_type = tstate->exc_type;
+    tmp_value = tstate->exc_value;
+    tmp_tb = tstate->exc_traceback;
+    tstate->exc_type = local_type;
+    tstate->exc_value = local_value;
+    tstate->exc_traceback = local_tb;
+    #endif
+    Py_XDECREF(tmp_type);
+    Py_XDECREF(tmp_value);
+    Py_XDECREF(tmp_tb);
+#else
+    PyErr_SetExcInfo(local_type, local_value, local_tb);
+#endif
+    return 0;
+bad:
+    *type = 0;
+    *value = 0;
+    *tb = 0;
+    Py_XDECREF(local_type);
+    Py_XDECREF(local_value);
+    Py_XDECREF(local_tb);
+    return -1;
+}
+
+/* PyIntFromDouble */
+#if PY_MAJOR_VERSION < 3
+static CYTHON_INLINE PyObject* __Pyx_PyInt_FromDouble(double value) {
+    if (value >= (double)LONG_MIN && value <= (double)LONG_MAX) {
+        return PyInt_FromLong((long)value);
+    }
+    return PyLong_FromDouble(value);
+}
+#endif
 
 /* ArgTypeTest */
 static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
@@ -18866,136 +20710,6 @@ static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type) {
     PyErr_Format(PyExc_TypeError, "Cannot convert %.200s to %.200s",
                  Py_TYPE(obj)->tp_name, type->tp_name);
     return 0;
-}
-
-/* GetTopmostException */
-#if CYTHON_USE_EXC_INFO_STACK
-static _PyErr_StackItem *
-__Pyx_PyErr_GetTopmostException(PyThreadState *tstate)
-{
-    _PyErr_StackItem *exc_info = tstate->exc_info;
-    while ((exc_info->exc_type == NULL || exc_info->exc_type == Py_None) &&
-           exc_info->previous_item != NULL)
-    {
-        exc_info = exc_info->previous_item;
-    }
-    return exc_info;
-}
-#endif
-
-/* SaveResetException */
-#if CYTHON_FAST_THREAD_STATE
-static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
-    #if CYTHON_USE_EXC_INFO_STACK
-    _PyErr_StackItem *exc_info = __Pyx_PyErr_GetTopmostException(tstate);
-    *type = exc_info->exc_type;
-    *value = exc_info->exc_value;
-    *tb = exc_info->exc_traceback;
-    #else
-    *type = tstate->exc_type;
-    *value = tstate->exc_value;
-    *tb = tstate->exc_traceback;
-    #endif
-    Py_XINCREF(*type);
-    Py_XINCREF(*value);
-    Py_XINCREF(*tb);
-}
-static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
-    PyObject *tmp_type, *tmp_value, *tmp_tb;
-    #if CYTHON_USE_EXC_INFO_STACK
-    _PyErr_StackItem *exc_info = tstate->exc_info;
-    tmp_type = exc_info->exc_type;
-    tmp_value = exc_info->exc_value;
-    tmp_tb = exc_info->exc_traceback;
-    exc_info->exc_type = type;
-    exc_info->exc_value = value;
-    exc_info->exc_traceback = tb;
-    #else
-    tmp_type = tstate->exc_type;
-    tmp_value = tstate->exc_value;
-    tmp_tb = tstate->exc_traceback;
-    tstate->exc_type = type;
-    tstate->exc_value = value;
-    tstate->exc_traceback = tb;
-    #endif
-    Py_XDECREF(tmp_type);
-    Py_XDECREF(tmp_value);
-    Py_XDECREF(tmp_tb);
-}
-#endif
-
-/* GetException */
-#if CYTHON_FAST_THREAD_STATE
-static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb)
-#else
-static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb)
-#endif
-{
-    PyObject *local_type, *local_value, *local_tb;
-#if CYTHON_FAST_THREAD_STATE
-    PyObject *tmp_type, *tmp_value, *tmp_tb;
-    local_type = tstate->curexc_type;
-    local_value = tstate->curexc_value;
-    local_tb = tstate->curexc_traceback;
-    tstate->curexc_type = 0;
-    tstate->curexc_value = 0;
-    tstate->curexc_traceback = 0;
-#else
-    PyErr_Fetch(&local_type, &local_value, &local_tb);
-#endif
-    PyErr_NormalizeException(&local_type, &local_value, &local_tb);
-#if CYTHON_FAST_THREAD_STATE
-    if (unlikely(tstate->curexc_type))
-#else
-    if (unlikely(PyErr_Occurred()))
-#endif
-        goto bad;
-    #if PY_MAJOR_VERSION >= 3
-    if (local_tb) {
-        if (unlikely(PyException_SetTraceback(local_value, local_tb) < 0))
-            goto bad;
-    }
-    #endif
-    Py_XINCREF(local_tb);
-    Py_XINCREF(local_type);
-    Py_XINCREF(local_value);
-    *type = local_type;
-    *value = local_value;
-    *tb = local_tb;
-#if CYTHON_FAST_THREAD_STATE
-    #if CYTHON_USE_EXC_INFO_STACK
-    {
-        _PyErr_StackItem *exc_info = tstate->exc_info;
-        tmp_type = exc_info->exc_type;
-        tmp_value = exc_info->exc_value;
-        tmp_tb = exc_info->exc_traceback;
-        exc_info->exc_type = local_type;
-        exc_info->exc_value = local_value;
-        exc_info->exc_traceback = local_tb;
-    }
-    #else
-    tmp_type = tstate->exc_type;
-    tmp_value = tstate->exc_value;
-    tmp_tb = tstate->exc_traceback;
-    tstate->exc_type = local_type;
-    tstate->exc_value = local_value;
-    tstate->exc_traceback = local_tb;
-    #endif
-    Py_XDECREF(tmp_type);
-    Py_XDECREF(tmp_value);
-    Py_XDECREF(tmp_tb);
-#else
-    PyErr_SetExcInfo(local_type, local_value, local_tb);
-#endif
-    return 0;
-bad:
-    *type = 0;
-    *value = 0;
-    *tb = 0;
-    Py_XDECREF(local_type);
-    Py_XDECREF(local_value);
-    Py_XDECREF(local_tb);
-    return -1;
 }
 
 /* SwapException */
