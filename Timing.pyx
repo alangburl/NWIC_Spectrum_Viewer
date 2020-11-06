@@ -25,7 +25,7 @@ def channel_timing(double[:] sync_time,int s, double[:] detector_time,
     cdef int i
     cdef double[:] region1_output=np.zeros(num_channels)
     cdef double[:] region2_output=np.zeros(num_channels)
-    
+    cdef int a=0
     for i in range(s):
         try:
             while detector_time[d_loc]<sync_time[i]+delta_time:
@@ -35,8 +35,8 @@ def channel_timing(double[:] sync_time,int s, double[:] detector_time,
                 region2_output[int(channels[d_loc])]+=1
                 d_loc+=1
         except:
-            a=True
-
+            a+=1
+    print(a)
     return region1_output, region2_output 
 
 def channel_timing_roi(double[:] sync_time,int s, double[:] detector_time, 
@@ -46,7 +46,7 @@ def channel_timing_roi(double[:] sync_time,int s, double[:] detector_time,
     cdef int i
     cdef double[:] region1_output=np.zeros(num_channels)
     cdef double[:] region2_output=np.zeros(num_channels)
-    
+    cdef int a=0
     for i in range(s):
         try:
             while detector_time[d_loc]<sync_time[i]+delta_time:
@@ -56,8 +56,8 @@ def channel_timing_roi(double[:] sync_time,int s, double[:] detector_time,
                 region2_output[int(channels[d_loc])]+=1
                 d_loc+=1
         except:
-            a=True
-
+            a+=1
+    print(a)
     return region1_output, region2_output
 
 def ROI_Timing(double[:] sync_time,int s, double[:] detector_time, 

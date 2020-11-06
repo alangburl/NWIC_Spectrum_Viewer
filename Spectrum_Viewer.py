@@ -73,7 +73,7 @@ class Viewer(QMainWindow):
         self.change_zoom.setShortcut('Ctrl+Z')
         self.change_zoom.setToolTip('Change the initial zoom on the spectrum')
         
-        self.menuView=self.menuBar().addMenu('&View')
+        self.menuView=self.menuBar().addMenu('&View Spectrum Data')
         self.view_energies=QAction('&View Energies')
         self.view_energies.setToolTip('Add Vertical Energy Lines')
         self.view_energies.triggered.connect(self.vert_lines)
@@ -81,30 +81,29 @@ class Viewer(QMainWindow):
         self.view_calibration_energies.triggered.connect(self.calib_lines)
         self.view_countrate=QAction('&Count Rates')
         self.view_countrate.triggered.connect(self.rate_tracking)
-        self.roi_action=QAction('&ROI Counts')
-        self.roi_action.triggered.connect(self.roi_display)
+        self.roi_uncertainty=QAction('&ROI Uncertainties')
+        self.roi_uncertainty.triggered.connect(self.roi_count_rate_uncertainty)    
+        
+        self.menuView.addActions([self.view_energies,self.change_zoom,
+                          self.view_calibration_energies,
+                          self.view_countrate,
+                          self.roi_uncertainty])
+        
+        self.menuList=self.menuBar().addMenu('&List Mode Data Analysis')
         self.timing_window=QAction('&View Time Decay')
         self.timing_window.triggered.connect(self.time_display)
         self.list_mode=QAction('&Analyze List Mode Data')
         self.list_mode.triggered.connect(self.list_moder)
-        self.roi_uncertainty=QAction('&ROI Uncertainties')
-        self.roi_uncertainty.triggered.connect(self.roi_count_rate_uncertainty)
-        
         self.detection_probability=QAction('&Detection Probability')
         self.detection_probability.triggered.connect(self.detec_prob)
-        
         self.dieaway=QAction('&Analyze Die Away')
         self.dieaway.triggered.connect(self.bck_die_away)
-        
         self.video=QAction('&Save Probability Videos')
         self.video.triggered.connect(self.save_detec_videos)
         
-        self.menuView.addActions([self.view_energies,self.change_zoom,
-                                  self.view_calibration_energies,
-                                  self.view_countrate,self.roi_action,
-                                  self.timing_window,self.list_mode,
-                                  self.roi_uncertainty,self.dieaway,
-                                  self.detection_probability,self.video])
+        self.menuList.addActions([self.timing_window,self.list_mode,
+                                  self.detection_probability,
+                                  self.dieaway,self.video])
         
     def geometry(self):
         self.open_=QDockWidget('Loaded Spectrums')

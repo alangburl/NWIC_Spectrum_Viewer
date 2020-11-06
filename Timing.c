@@ -1670,6 +1670,13 @@ static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
 static CYTHON_INLINE PyObject *__pyx_memview_get_double(const char *itemp);
 static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *obj);
 
+/* Print.proto */
+static int __Pyx_Print(PyObject*, PyObject *, int);
+#if CYTHON_COMPILING_IN_PYPY || PY_MAJOR_VERSION >= 3
+static PyObject* __pyx_print = 0;
+static PyObject* __pyx_print_kwargs = 0;
+#endif
+
 /* MemviewSliceCopyTemplate.proto */
 static __Pyx_memviewslice
 __pyx_memoryview_copy_new_contig(const __Pyx_memviewslice *from_mvs,
@@ -1679,6 +1686,9 @@ __pyx_memoryview_copy_new_contig(const __Pyx_memviewslice *from_mvs,
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
+
+/* PrintOne.proto */
+static int __Pyx_PrintOne(PyObject* stream, PyObject *o);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
@@ -1772,11 +1782,13 @@ static const char __pyx_k_s[] = "s";
 static const char __pyx_k_dd[] = "dd";
 static const char __pyx_k_id[] = "id";
 static const char __pyx_k_np[] = "np";
+static const char __pyx_k_end[] = "end";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_obj[] = "obj";
 static const char __pyx_k_base[] = "base";
 static const char __pyx_k_bins[] = "bins";
 static const char __pyx_k_dict[] = "__dict__";
+static const char __pyx_k_file[] = "file";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_mode[] = "mode";
 static const char __pyx_k_name[] = "name";
@@ -1793,6 +1805,7 @@ static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
 static const char __pyx_k_lower[] = "lower";
 static const char __pyx_k_numpy[] = "numpy";
+static const char __pyx_k_print[] = "print";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
 static const char __pyx_k_start[] = "start";
@@ -1931,8 +1944,10 @@ static PyObject *__pyx_n_s_detector_time;
 static PyObject *__pyx_n_s_dict;
 static PyObject *__pyx_n_s_dtype_is_object;
 static PyObject *__pyx_n_s_encode;
+static PyObject *__pyx_n_s_end;
 static PyObject *__pyx_n_s_enumerate;
 static PyObject *__pyx_n_s_error;
+static PyObject *__pyx_n_s_file;
 static PyObject *__pyx_n_s_flags;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
@@ -1963,6 +1978,7 @@ static PyObject *__pyx_n_s_obj;
 static PyObject *__pyx_n_s_output;
 static PyObject *__pyx_n_s_pack;
 static PyObject *__pyx_n_s_pickle;
+static PyObject *__pyx_n_s_print;
 static PyObject *__pyx_n_s_pyx_PickleError;
 static PyObject *__pyx_n_s_pyx_checksum;
 static PyObject *__pyx_n_s_pyx_getbuffer;
@@ -2696,7 +2712,7 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
   int __pyx_v_i;
   __Pyx_memviewslice __pyx_v_region1_output = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_region2_output = { 0, 0, { 0 }, { 0 }, { 0 } };
-  CYTHON_UNUSED int __pyx_v_a;
+  int __pyx_v_a;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2742,7 +2758,7 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
  *     cdef int i
  *     cdef double[:] region1_output=np.zeros(num_channels)             # <<<<<<<<<<<<<<
  *     cdef double[:] region2_output=np.zeros(num_channels)
- * 
+ *     cdef int a=0
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -2777,7 +2793,7 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
  *     cdef int i
  *     cdef double[:] region1_output=np.zeros(num_channels)
  *     cdef double[:] region2_output=np.zeros(num_channels)             # <<<<<<<<<<<<<<
- * 
+ *     cdef int a=0
  *     for i in range(s):
  */
   __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 27, __pyx_L1_error)
@@ -2809,9 +2825,18 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
+  /* "Timing.pyx":28
+ *     cdef double[:] region1_output=np.zeros(num_channels)
+ *     cdef double[:] region2_output=np.zeros(num_channels)
+ *     cdef int a=0             # <<<<<<<<<<<<<<
+ *     for i in range(s):
+ *         try:
+ */
+  __pyx_v_a = 0;
+
   /* "Timing.pyx":29
  *     cdef double[:] region2_output=np.zeros(num_channels)
- * 
+ *     cdef int a=0
  *     for i in range(s):             # <<<<<<<<<<<<<<
  *         try:
  *             while detector_time[d_loc]<sync_time[i]+delta_time:
@@ -2822,7 +2847,7 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
     __pyx_v_i = __pyx_t_8;
 
     /* "Timing.pyx":30
- * 
+ *     cdef int a=0
  *     for i in range(s):
  *         try:             # <<<<<<<<<<<<<<
  *             while detector_time[d_loc]<sync_time[i]+delta_time:
@@ -2972,13 +2997,13 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
  *                 region2_output[int(channels[d_loc])]+=1
  *                 d_loc+=1             # <<<<<<<<<<<<<<
  *         except:
- *             a=True
+ *             a+=1
  */
           __pyx_v_d_loc = (__pyx_v_d_loc + 1);
         }
 
         /* "Timing.pyx":30
- * 
+ *     cdef int a=0
  *     for i in range(s):
  *         try:             # <<<<<<<<<<<<<<
  *             while detector_time[d_loc]<sync_time[i]+delta_time:
@@ -3000,8 +3025,8 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
  *                 region2_output[int(channels[d_loc])]+=1
  *                 d_loc+=1
  *         except:             # <<<<<<<<<<<<<<
- *             a=True
- * 
+ *             a+=1
+ *     print(a)
  */
       /*except:*/ {
         __Pyx_AddTraceback("Timing.channel_timing", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -3013,11 +3038,11 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
         /* "Timing.pyx":38
  *                 d_loc+=1
  *         except:
- *             a=True             # <<<<<<<<<<<<<<
- * 
+ *             a+=1             # <<<<<<<<<<<<<<
+ *     print(a)
  *     return region1_output, region2_output
  */
-        __pyx_v_a = 1;
+        __pyx_v_a = (__pyx_v_a + 1);
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3026,7 +3051,7 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
       __pyx_L7_except_error:;
 
       /* "Timing.pyx":30
- * 
+ *     cdef int a=0
  *     for i in range(s):
  *         try:             # <<<<<<<<<<<<<<
  *             while detector_time[d_loc]<sync_time[i]+delta_time:
@@ -3046,9 +3071,21 @@ static PyObject *__pyx_pf_6Timing_2channel_timing(CYTHON_UNUSED PyObject *__pyx_
     }
   }
 
-  /* "Timing.pyx":40
- *             a=True
+  /* "Timing.pyx":39
+ *         except:
+ *             a+=1
+ *     print(a)             # <<<<<<<<<<<<<<
+ *     return region1_output, region2_output
  * 
+ */
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_a); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (__Pyx_PrintOne(0, __pyx_t_3) < 0) __PYX_ERR(0, 39, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "Timing.pyx":40
+ *             a+=1
+ *     print(a)
  *     return region1_output, region2_output             # <<<<<<<<<<<<<<
  * 
  * def channel_timing_roi(double[:] sync_time,int s, double[:] detector_time,
@@ -3221,7 +3258,7 @@ static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__
   int __pyx_v_i;
   __Pyx_memviewslice __pyx_v_region1_output = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_region2_output = { 0, 0, { 0 }, { 0 }, { 0 } };
-  CYTHON_UNUSED int __pyx_v_a;
+  int __pyx_v_a;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3267,7 +3304,7 @@ static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__
  *     cdef int i
  *     cdef double[:] region1_output=np.zeros(num_channels)             # <<<<<<<<<<<<<<
  *     cdef double[:] region2_output=np.zeros(num_channels)
- * 
+ *     cdef int a=0
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -3302,7 +3339,7 @@ static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__
  *     cdef int i
  *     cdef double[:] region1_output=np.zeros(num_channels)
  *     cdef double[:] region2_output=np.zeros(num_channels)             # <<<<<<<<<<<<<<
- * 
+ *     cdef int a=0
  *     for i in range(s):
  */
   __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 48, __pyx_L1_error)
@@ -3334,9 +3371,18 @@ static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
+  /* "Timing.pyx":49
+ *     cdef double[:] region1_output=np.zeros(num_channels)
+ *     cdef double[:] region2_output=np.zeros(num_channels)
+ *     cdef int a=0             # <<<<<<<<<<<<<<
+ *     for i in range(s):
+ *         try:
+ */
+  __pyx_v_a = 0;
+
   /* "Timing.pyx":50
  *     cdef double[:] region2_output=np.zeros(num_channels)
- * 
+ *     cdef int a=0
  *     for i in range(s):             # <<<<<<<<<<<<<<
  *         try:
  *             while detector_time[d_loc]<sync_time[i]+delta_time:
@@ -3347,7 +3393,7 @@ static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__
     __pyx_v_i = __pyx_t_8;
 
     /* "Timing.pyx":51
- * 
+ *     cdef int a=0
  *     for i in range(s):
  *         try:             # <<<<<<<<<<<<<<
  *             while detector_time[d_loc]<sync_time[i]+delta_time:
@@ -3497,13 +3543,13 @@ static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__
  *                 region2_output[int(channels[d_loc])]+=1
  *                 d_loc+=1             # <<<<<<<<<<<<<<
  *         except:
- *             a=True
+ *             a+=1
  */
           __pyx_v_d_loc = (__pyx_v_d_loc + 1);
         }
 
         /* "Timing.pyx":51
- * 
+ *     cdef int a=0
  *     for i in range(s):
  *         try:             # <<<<<<<<<<<<<<
  *             while detector_time[d_loc]<sync_time[i]+delta_time:
@@ -3525,8 +3571,8 @@ static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__
  *                 region2_output[int(channels[d_loc])]+=1
  *                 d_loc+=1
  *         except:             # <<<<<<<<<<<<<<
- *             a=True
- * 
+ *             a+=1
+ *     print(a)
  */
       /*except:*/ {
         __Pyx_AddTraceback("Timing.channel_timing_roi", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -3538,11 +3584,11 @@ static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__
         /* "Timing.pyx":59
  *                 d_loc+=1
  *         except:
- *             a=True             # <<<<<<<<<<<<<<
- * 
+ *             a+=1             # <<<<<<<<<<<<<<
+ *     print(a)
  *     return region1_output, region2_output
  */
-        __pyx_v_a = 1;
+        __pyx_v_a = (__pyx_v_a + 1);
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3551,7 +3597,7 @@ static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__
       __pyx_L7_except_error:;
 
       /* "Timing.pyx":51
- * 
+ *     cdef int a=0
  *     for i in range(s):
  *         try:             # <<<<<<<<<<<<<<
  *             while detector_time[d_loc]<sync_time[i]+delta_time:
@@ -3571,9 +3617,21 @@ static PyObject *__pyx_pf_6Timing_4channel_timing_roi(CYTHON_UNUSED PyObject *__
     }
   }
 
-  /* "Timing.pyx":61
- *             a=True
+  /* "Timing.pyx":60
+ *         except:
+ *             a+=1
+ *     print(a)             # <<<<<<<<<<<<<<
+ *     return region1_output, region2_output
  * 
+ */
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_a); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (__Pyx_PrintOne(0, __pyx_t_3) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "Timing.pyx":61
+ *             a+=1
+ *     print(a)
  *     return region1_output, region2_output             # <<<<<<<<<<<<<<
  * 
  * def ROI_Timing(double[:] sync_time,int s, double[:] detector_time,
@@ -18355,8 +18413,10 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
   {&__pyx_n_s_dtype_is_object, __pyx_k_dtype_is_object, sizeof(__pyx_k_dtype_is_object), 0, 0, 1, 1},
   {&__pyx_n_s_encode, __pyx_k_encode, sizeof(__pyx_k_encode), 0, 0, 1, 1},
+  {&__pyx_n_s_end, __pyx_k_end, sizeof(__pyx_k_end), 0, 0, 1, 1},
   {&__pyx_n_s_enumerate, __pyx_k_enumerate, sizeof(__pyx_k_enumerate), 0, 0, 1, 1},
   {&__pyx_n_s_error, __pyx_k_error, sizeof(__pyx_k_error), 0, 0, 1, 1},
+  {&__pyx_n_s_file, __pyx_k_file, sizeof(__pyx_k_file), 0, 0, 1, 1},
   {&__pyx_n_s_flags, __pyx_k_flags, sizeof(__pyx_k_flags), 0, 0, 1, 1},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
@@ -18387,6 +18447,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_output, __pyx_k_output, sizeof(__pyx_k_output), 0, 0, 1, 1},
   {&__pyx_n_s_pack, __pyx_k_pack, sizeof(__pyx_k_pack), 0, 0, 1, 1},
   {&__pyx_n_s_pickle, __pyx_k_pickle, sizeof(__pyx_k_pickle), 0, 0, 1, 1},
+  {&__pyx_n_s_print, __pyx_k_print, sizeof(__pyx_k_print), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_PickleError, __pyx_k_pyx_PickleError, sizeof(__pyx_k_pyx_PickleError), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_checksum, __pyx_k_pyx_checksum, sizeof(__pyx_k_pyx_checksum), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_getbuffer, __pyx_k_pyx_getbuffer, sizeof(__pyx_k_pyx_getbuffer), 0, 0, 1, 1},
@@ -22409,6 +22470,112 @@ static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *o
     return 1;
 }
 
+/* Print */
+  #if !CYTHON_COMPILING_IN_PYPY && PY_MAJOR_VERSION < 3
+static PyObject *__Pyx_GetStdout(void) {
+    PyObject *f = PySys_GetObject((char *)"stdout");
+    if (!f) {
+        PyErr_SetString(PyExc_RuntimeError, "lost sys.stdout");
+    }
+    return f;
+}
+static int __Pyx_Print(PyObject* f, PyObject *arg_tuple, int newline) {
+    int i;
+    if (!f) {
+        if (!(f = __Pyx_GetStdout()))
+            return -1;
+    }
+    Py_INCREF(f);
+    for (i=0; i < PyTuple_GET_SIZE(arg_tuple); i++) {
+        PyObject* v;
+        if (PyFile_SoftSpace(f, 1)) {
+            if (PyFile_WriteString(" ", f) < 0)
+                goto error;
+        }
+        v = PyTuple_GET_ITEM(arg_tuple, i);
+        if (PyFile_WriteObject(v, f, Py_PRINT_RAW) < 0)
+            goto error;
+        if (PyString_Check(v)) {
+            char *s = PyString_AsString(v);
+            Py_ssize_t len = PyString_Size(v);
+            if (len > 0) {
+                switch (s[len-1]) {
+                    case ' ': break;
+                    case '\f': case '\r': case '\n': case '\t': case '\v':
+                        PyFile_SoftSpace(f, 0);
+                        break;
+                    default:  break;
+                }
+            }
+        }
+    }
+    if (newline) {
+        if (PyFile_WriteString("\n", f) < 0)
+            goto error;
+        PyFile_SoftSpace(f, 0);
+    }
+    Py_DECREF(f);
+    return 0;
+error:
+    Py_DECREF(f);
+    return -1;
+}
+#else
+static int __Pyx_Print(PyObject* stream, PyObject *arg_tuple, int newline) {
+    PyObject* kwargs = 0;
+    PyObject* result = 0;
+    PyObject* end_string;
+    if (unlikely(!__pyx_print)) {
+        __pyx_print = PyObject_GetAttr(__pyx_b, __pyx_n_s_print);
+        if (!__pyx_print)
+            return -1;
+    }
+    if (stream) {
+        kwargs = PyDict_New();
+        if (unlikely(!kwargs))
+            return -1;
+        if (unlikely(PyDict_SetItem(kwargs, __pyx_n_s_file, stream) < 0))
+            goto bad;
+        if (!newline) {
+            end_string = PyUnicode_FromStringAndSize(" ", 1);
+            if (unlikely(!end_string))
+                goto bad;
+            if (PyDict_SetItem(kwargs, __pyx_n_s_end, end_string) < 0) {
+                Py_DECREF(end_string);
+                goto bad;
+            }
+            Py_DECREF(end_string);
+        }
+    } else if (!newline) {
+        if (unlikely(!__pyx_print_kwargs)) {
+            __pyx_print_kwargs = PyDict_New();
+            if (unlikely(!__pyx_print_kwargs))
+                return -1;
+            end_string = PyUnicode_FromStringAndSize(" ", 1);
+            if (unlikely(!end_string))
+                return -1;
+            if (PyDict_SetItem(__pyx_print_kwargs, __pyx_n_s_end, end_string) < 0) {
+                Py_DECREF(end_string);
+                return -1;
+            }
+            Py_DECREF(end_string);
+        }
+        kwargs = __pyx_print_kwargs;
+    }
+    result = PyObject_Call(__pyx_print, arg_tuple, kwargs);
+    if (unlikely(kwargs) && (kwargs != __pyx_print_kwargs))
+        Py_DECREF(kwargs);
+    if (!result)
+        return -1;
+    Py_DECREF(result);
+    return 0;
+bad:
+    if (kwargs != __pyx_print_kwargs)
+        Py_XDECREF(kwargs);
+    return -1;
+}
+#endif
+
 /* MemviewSliceCopyTemplate */
   static __Pyx_memviewslice
 __pyx_memoryview_copy_new_contig(const __Pyx_memviewslice *from_mvs,
@@ -22664,6 +22831,43 @@ raise_neg_overflow:
         "can't convert negative value to int");
     return (int) -1;
 }
+
+/* PrintOne */
+  #if !CYTHON_COMPILING_IN_PYPY && PY_MAJOR_VERSION < 3
+static int __Pyx_PrintOne(PyObject* f, PyObject *o) {
+    if (!f) {
+        if (!(f = __Pyx_GetStdout()))
+            return -1;
+    }
+    Py_INCREF(f);
+    if (PyFile_SoftSpace(f, 0)) {
+        if (PyFile_WriteString(" ", f) < 0)
+            goto error;
+    }
+    if (PyFile_WriteObject(o, f, Py_PRINT_RAW) < 0)
+        goto error;
+    if (PyFile_WriteString("\n", f) < 0)
+        goto error;
+    Py_DECREF(f);
+    return 0;
+error:
+    Py_DECREF(f);
+    return -1;
+    /* the line below is just to avoid C compiler
+     * warnings about unused functions */
+    return __Pyx_Print(f, NULL, 0);
+}
+#else
+static int __Pyx_PrintOne(PyObject* stream, PyObject *o) {
+    int res;
+    PyObject* arg_tuple = PyTuple_Pack(1, o);
+    if (unlikely(!arg_tuple))
+        return -1;
+    res = __Pyx_Print(stream, arg_tuple, 1);
+    Py_DECREF(arg_tuple);
+    return res;
+}
+#endif
 
 /* CIntFromPy */
   static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *x) {
