@@ -1,19 +1,17 @@
-\subsection{View Spectrum Data}
+\section{View Spectrum Data}
 	This drop down has options that come directly from the data loaded into the main interface. 
 
-	\begin{itemize}
-		\item View Energies:\\
+		\subsection{View Energies}
 			This takes a set of energies, in MeV, seperated by commas to draw vertical lines on the graph. These lines will be drawn as a dotted red line.
-		\item Change Zoom Location:\\
+		\subsection{Change Zoom Location}
 			Changes the minimumum and maximum energies shown on the graph. Much like a zoom feature. 
-		\item Calibration Energies:\\
+		\subsection{Calibration Energies}
 			Takes a set of values, seperated by commans to draw vertical lines representing calibration energies. These will appear as solid black lines. 
-		\item Count Rates:\\
+		\subsection{Count Rates}
 			Will display the count rate of all loaded spectrum in counts per second. If a time of 1 second has been entered for the accumulation time, the value displayed will be the total number of counts in the total spectrum.
-		\item ROI Uncertainties:\\
+		\subsection{ROI Uncertainties}
 		This will compute the gross count rate, net count rate, and the associtate uncertainties for each in a specified region of interest. The gross count uncertainties are found using $\sigma=\sqrt{N}$, where $\sigma$ is the standard deviation and $N$ is the number of counts in the region of interest. The net uncertainty is found using equation \ref{eq:net_uncer}, where $\sigma_F$ and $\sigma_B$ are foreground and background standard deviations respectively.
 		\begin{equation}
 			\sigma_{net}=\sqrt{\sigma_F^2+\sigma_B^2}
 			\label{eq:net_uncer}
 		\end{equation}
-	\end{itemize}

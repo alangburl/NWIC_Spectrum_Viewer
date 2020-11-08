@@ -18,18 +18,18 @@
 		P=\frac{1}{2\pi\sigma^2}exp\left(\frac{\left(\mu-k\right)^2}{2\sigma^2}\right)
 		\label{eq:gaussian}
 		\end{equation}
-	An example of a foreground and background distribution plotted together are seen in Figure \ref{fig:pdf}. The background distribution is used in conjunction with a maximum false alarm rate, one alarm per eight hours is the default, to find a threshold to be used to determine the detection probability. 
+	An example of a foreground and background distribution plotted together are seen in Figure \ref{fig:pdf}. The background distribution is used in conjunction with a maximum false alarm rate, one alarm per eight hours is the default, to find a threshold to be used to determine the detection probability. \\
 	
 	\begin{figure}[h!]
 		\centering
-		\includegraphics[width=\linewidth]{pdf.png}
+		\includegraphics[width=0.6\linewidth]{pdf.png}
 		\caption{Probability distribution functions for a foreground and background plotted together.}
 		\label{fig:pdf}
 	\end{figure}
-	The probability distribution functions are then numerically integrated using trapeziodal rule. The integration of this must sum to exactly one. The foreground and background cumulative density functions, along with the threshold is seen in Figure \ref{fig:cdf}.
+	The probability distribution functions are then numerically integrated using trapeziodal rule. The integration of this must sum to exactly one. The foreground and background cumulative density functions, along with the threshold is seen in Figure \ref{fig:cdf}.\\
 	\begin{figure}[h!]
 		\centering
-		\includegraphics[width=\linewidth]{cdf.png}
+		\includegraphics[width=0.6\linewidth]{cdf.png}
 		\caption{Cummulative density function with detection threshold indicated.}
 		\label{fig:cdf}
 	\end{figure}
