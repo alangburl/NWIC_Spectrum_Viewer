@@ -33,7 +33,7 @@
 		\caption{Cummulative density function with detection threshold indicated.}
 		\label{fig:cdf}
 	\end{figure}
-Using the cummulative density function and the threshold, the detection probability is found as $1-f_{cdf}$ where $f_{cdf}$ is the foreground cummulative density function evaluated at the threshold index. 
+Using the cummulative density function and the threshold, the detection probability is found as $1-f_{cdf}$ where $f_{cdf}$ is the foreground cummulative density function evaluated at the threshold index. For the given examples the detection probability is 93\%. 
 \subsubsection{Implementation}
 	Two files are required for this to work, a background and a foreground, these are selected in this order. The files are generated using the ``Save ROI'' method in the ``List Mode Reader'' interface. The files take a two column form with a time of arrival and energy as the two columns. A window will appear to set the first time step to begin integrating. This is due to statistical fluctuations at extremely low count fields. A total of 181 time steps are taken over the entire length of the accumulated time.\\ 
 	
@@ -41,7 +41,7 @@ It should be noted that this portion may take a significant portion of time to r
 
 Upon completeion of the analysis, the software will automatically bring up a windows file explorer to save the data points out, to be used for generation of a video. This will then generate a plot of the probability of detection versus time, the software will indicate the point at which the detection probability rises above 99\% for the first time. Care should be taken by the user to ensure the start point has not removed prudent data, but is high enough to remove any erroneous data points. 
 
-\subsubsection{Save Probability Video}
+\subsection{Save Probability Video}
 	This generates a video from the probability data saved using the detection probability function. It expects as input a two column file with time in the first column and a detection probability in the second. It saves as an mp4 file type.
 
 
