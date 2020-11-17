@@ -9,7 +9,7 @@ The only option is Calibrate Spectrum. This will launch a new window, seen in Fi
 
 
 	\subsection{Load New Spectrum}
-		This will load the per channel counts in the spectrum. Takes plain texts files as the argument. It expects a single column of data.
+		This will load the per channel counts in the spectrum. This will accept plain text, comma-seperated, and IAEA file types. It expects a single column of data for the plain text and comma-seperated variants.
 
 	\subsection{Calibrate}
 		This loads a drop down menu with the following options:
@@ -24,6 +24,6 @@ The only option is Calibrate Spectrum. This will launch a new window, seen in Fi
 				\subsubsection{External Calibration}
 				Used if a known slope and intercept are to be input. It will fit the calibration to equation \ref{eq:linear}.
 				\subsubsection{Segmented Linear}
-				Fits a linear between each successive point of the inputs.
+				Fits a line between each successive point of the inputs.
 	\subsection{Save Calibration}
 	Will save a single column of that relate the channel to calibrated energy as a plain text file(.txt) to the specified location.

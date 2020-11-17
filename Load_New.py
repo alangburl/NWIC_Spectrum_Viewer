@@ -84,7 +84,7 @@ class Load_New(QWidget):
     def count_browser(self):
         fileName=QFileDialog.getOpenFileName(self,'Counts File Location',
                                              "",
-                         'Text File (*.txt);;Comma Seperated File (*.csv)')
+                         'Text File (*.txt);;Comma Seperated File (*.csv);;IAEA (*.spe)')
         if fileName:
             self.counts_=True
             if self.calibrate_:
@@ -110,24 +110,28 @@ class Load_New(QWidget):
         counts=self.counts_loc.text()
         calibration=self.calibration_loc.text()
         
-        f=open(counts,'r')
-        c_data=f.readlines()
-        f.close()
-        self.counts=[float(i.split(sep=',')[0].split(sep='\n')[0]) \
-                     for i in c_data]
-        try:
-            scale=float(self.run_time.text())
-        except:
-            scale=1.0
+        if '.spe' in counts:
+            self.counts,scale=self.load_spe(counts)
+        else:
+            f=open(counts,'r')
+            c_data=f.readlines()
+            f.close()
+            self.counts=[float(i.split(sep=',')[0].split(sep='\n')[0]) \
+                         for i in c_data]
+            try:
+                scale=float(self.run_time.text())
+            except:
+                scale=1.0
+                
         self.accum_time=scale
         self.count_rate=np.sum(self.counts)/scale
-        self.counts=[i/scale for i in self.counts]
+        self.counts=[self.counts[i]/scale for i in range(len(self.counts))]
     
         g=open(calibration,'r')
         g_data=g.readlines()
         g.close()
         self.calibration=[float(i.split(sep=',')[0].split(sep='\n')[0]) \
-                         for i in g_data]
+                          for i in g_data]
         if len(self.calibration)!=len(self.counts):
             print(len(self.calibration))
             print(len(self.counts))
@@ -136,6 +140,21 @@ class Load_New(QWidget):
                           QMessageBox.Ok)
             pass
         self.close()
+        
+    def load_spe(self,file_path):
+        '''Load a spectrum file type using the SPE file format'''
+        f=open(file_path,'r')
+        data=f.readlines()
+        f.close()
+        
+        timer=float(data[3].split()[0])
+        counts=[]
+        num_counts=int(data[7].split()[1])
+        
+        for i in range(8,num_counts+8):
+            counts.append(float(data[i]))
+        return counts, timer
+        
     
 if __name__=="__main__":
     app=QApplication(sys.argv)

@@ -9,7 +9,8 @@ class Detector_Calibration():
         super().__init__()
         self.channels=channels
         
-    def linear_least_squares_fit(self,cal_channels,cal_energies,internal=False):
+    def linear_least_squares_fit(self,cal_channels,cal_energies,internal=False,
+                                 live_plotter=False):
         '''Use a straight first order linear least squares regression
         to fit the channels and energies
         '''
@@ -22,9 +23,11 @@ class Detector_Calibration():
         b=reg.intercept_
         if not internal:
             calibrated=[m*i+b for i in self.channels]
-            return calibrated
+            if live_plotter:
+                return calibrated,m,b
+            elif live_plotter==False:
+                return calibrated
         else:
-#            print(m,b)
             return m,b
         
     def external_calibration(self,m,b):

@@ -1,4 +1,3 @@
-There are currently four seperate main drop downs from the menu bar, these are: File, Edit, View Spectrum Data, and List Mode Data Analysis.
 \section{File Menu}
 	This menu is primarily used for the loading and saving of calibrated spectrum. The methods are listed below as well as there functions:
 		\subsection{Load New Spectrum}
@@ -15,7 +14,7 @@ There are currently four seperate main drop downs from the menu bar, these are: 
 				\subsubsection{Run Time(s)}
 				 The total run time of the spectrum accumulation. If left blank, it will default to 1.
 				\subsubsection{Spectrum Count Location}
-				 The absolute path to the file containing the spectrum counts on a per channel basis. Will accept plan text(.txt), comma seperated(.csv), and spectrum files(.spe).
+				 The absolute path to the file containing the spectrum counts on a per channel basis. Will accept plan text(.txt), comma seperated(.csv), and IAEA(.spe). If an IAEA file is loaded, the real-time in the file will be used as the run time, this can not be overridden.
 				\subsubsection{Calibration Location}
 				 Absolute path to the calibration file generated using the calibrate spectrum feature (discussed in more detail later). This file will be a single column of energy values whose length corresponds to the total number of channels the spectrum was accumulated using. 
 

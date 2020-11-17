@@ -149,6 +149,7 @@ class Viewer(QMainWindow):
         self.static_ax.set_xlim(0,14)
         self.static_ax.set_xlabel('Energy [MeV]')
         self.static_ax.set_ylabel('Count Rate [cps]')
+        self.figure.tight_layout()
     
     def new_spectrum(self):
         self.vals=New()
@@ -340,6 +341,7 @@ class Viewer(QMainWindow):
         self.static_ax.legend(prop={'size':18})
 #        self.static_ax.tick_params(labelsize=18)
         self._canvas.draw()
+        self.figure.tight_layout()
         
     def save_fig(self):
         options='Portable Network Graphics (*.png);;'
@@ -556,35 +558,39 @@ class Viewer(QMainWindow):
                            'Foreground List Mode File',"",
                            'Comma Seperated File (*.csv);;Text File (*.txt)')
         if ok and ok2:
-            evals=np.linspace(120,1800,181)
-            detection_probability=DT(file_namef,file_nameb,evals)
-            probs=detection_probability.probs
-            probs=[i*100 for i in probs]
-            time_detect=np.interp(99,probs,evals)
-            plt.figure(1)
-            plt.plot(evals, probs,'*')
-            plt.axvline(time_detect,label='Time to 99% detection probability: {:.2f}s'.format(time_detect))
-            plt.xlabel('Time(s)')
-            plt.ylabel('Probability (%)')
-            plt.legend()
-            # print(probs)
-            plt.show()
-            
-            #save the raw data out
-            fore_sums=detection_probability.f_sums
-            back_sums=detection_probability.b_sums
-            analysis_times=detection_probability.a_times
-            raw_name,ok3=QFileDialog.getSaveFileName(self,
-                           'Raw Data Save File Name',"",
-                           'Comma Seperated File (*.csv);;Text File (*.txt)')
+            num,ok3=QInputDialog.getInt(self,'Start Value','Value:',200,10,3000)
             if ok3:
-                f=open(raw_name,'w')
-                for i in range(len(fore_sums)):
-                    f.write('{},{},{},{}\n'.format(fore_sums[i],
-                                                   back_sums[i],
-                                                   analysis_times[i],
-                                                   probs[i]))
-                f.close()
+                evals=np.linspace(num,1800,181)
+                detection_probability=DT(file_namef,file_nameb,evals)
+                probs=detection_probability.probs
+                probs=[i*100 for i in probs]
+                print(probs[0:50])
+                time_detect=np.interp(99,probs,evals)
+                plt.figure(1)
+                plt.plot(evals, probs,'*')
+                plt.axvline(time_detect,
+                            label='Time to 99% detection probability: {:.2f}s'.format(time_detect))
+                plt.xlabel('Time(s)')
+                plt.ylabel('Probability (%)')
+                plt.legend()
+                # print(probs)
+                plt.show()
+                
+                #save the raw data out
+                fore_sums=detection_probability.f_sums
+                back_sums=detection_probability.b_sums
+                analysis_times=detection_probability.a_times
+                raw_name,ok3=QFileDialog.getSaveFileName(self,
+                               'Raw Data Save File Name',"",
+                               'Comma Seperated File (*.csv);;Text File (*.txt)')
+                if ok3:
+                    f=open(raw_name,'w')
+                    for i in range(len(fore_sums)):
+                        f.write('{},{},{:.4f},{:.4f}\n'.format(fore_sums[i],
+                                                       back_sums[i],
+                                                       analysis_times[i],
+                                                       probs[i]))
+                    f.close()
                 
     def save_detec_videos(self):
         file_nameb,ok=QFileDialog.getOpenFileName(self,
