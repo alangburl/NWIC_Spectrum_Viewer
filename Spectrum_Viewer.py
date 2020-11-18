@@ -10,6 +10,7 @@ from Animated_Gaussians import Movie_Maker as movie
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import signal
 #prefined imports
 import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
@@ -306,7 +307,6 @@ class Viewer(QMainWindow):
         self.plotted_spectrum.remove(val)
         #add the value to the not plotted side
         self.not_plotted_tracking.append(val)
-        self.loader.appendRow(QStandardItem(val))
         #remove all the values from the unloading side
         self.unloader.removeRows(0,self.unloader.rowCount())
         #remove the value from the tracking list
@@ -335,6 +335,7 @@ class Viewer(QMainWindow):
             spec=self.loaded_spectrum[i]
             self.static_ax.plot(spec[0],spec[1],
                                 label='{}, Accum Time: {}s'.format(i,spec[2]))
+            
         current=[round(float(k),2) for k in current]
         self.static_ax.set_xticks(current)
         self.static_ax.set_xticklabels(current, rotation=90)
@@ -607,6 +608,10 @@ class Viewer(QMainWindow):
             Movie=movie(file_nameb,file_nameg,file_namep)
             Movie.save_gaussian()
             Movie.save_probability()
+            
+    def find_peaks(self,x):
+        peaks, _ = signal.find_peaks(x,width=3,distance=2)
+        return peaks
             
 if __name__=="__main__":
     app=QApplication(sys.argv)

@@ -143,9 +143,9 @@ class Calibration_Window(QMainWindow):
         
     def new_spectrum(self):
         #load the file from a text or csv file
-        fileName=QFileDialog.getOpenFileName(self,'Raw Spectrum','',
+        fileName,ok=QFileDialog.getOpenFileName(self,'Raw Spectrum','',
                  'Text File (*.txt);;Comma Seperate File (*.csv);;IAEA(*.spe)')
-        if fileName and fileName!=' ':
+        if ok and fileName!='':
             #clear the list view to start calibrating again
             self.loaded.removeRows(0,self.loaded.rowCount())
             
