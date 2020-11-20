@@ -148,13 +148,12 @@ class Calibration_Window(QMainWindow):
         if ok and fileName!='':
             #clear the list view to start calibrating again
             self.loaded.removeRows(0,self.loaded.rowCount())
-            
             self.energies={}
             self.calibration_lines=[]
             self.counts=[]
             self.channels=[]
             if '.spe' not in fileName:
-                f=open(fileName[0],'r')
+                f=open(fileName,'r')
                 f_data=f.readlines()
                 f.close()
                 

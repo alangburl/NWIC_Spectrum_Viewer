@@ -84,11 +84,13 @@ class Viewer(QMainWindow):
         self.view_countrate.triggered.connect(self.rate_tracking)
         self.roi_uncertainty=QAction('&ROI Uncertainties')
         self.roi_uncertainty.triggered.connect(self.roi_count_rate_uncertainty)    
+        self.res_action=QAction('&Energy Resolution')
+        self.res_action.triggered.connect(self.find_peaks)
         
         self.menuView.addActions([self.view_energies,self.change_zoom,
                           self.view_calibration_energies,
                           self.view_countrate,
-                          self.roi_uncertainty])
+                          self.roi_uncertainty,self.res_action])
         
         self.menuList=self.menuBar().addMenu('&List Mode Data Analysis')
         self.timing_window=QAction('&View Time Decay')
@@ -307,6 +309,7 @@ class Viewer(QMainWindow):
         self.plotted_spectrum.remove(val)
         #add the value to the not plotted side
         self.not_plotted_tracking.append(val)
+        self.loader.appendRow(QStandardItem(val))
         #remove all the values from the unloading side
         self.unloader.removeRows(0,self.unloader.rowCount())
         #remove the value from the tracking list
@@ -324,6 +327,7 @@ class Viewer(QMainWindow):
         self.static_ax.set_xlabel('Energy [MeV]')
         self.static_ax.set_ylabel('Count Rate [cps]')
         current=list(self.static_ax.get_xticks())
+        
         for i in self.e_plot:
             current.append(i)
             self.static_ax.axvline(i,color='r',linestyle='--',linewidth=0.8)
@@ -348,10 +352,10 @@ class Viewer(QMainWindow):
         options='Portable Network Graphics (*.png);;'
         options_='Joint Photographic Experts Group(*.jpg)'
         options=options+options_
-        file_name=QFileDialog.getSaveFileName(self,'Spectrum Image Save',""
+        file_name,ok=QFileDialog.getSaveFileName(self,'Spectrum Image Save',""
                                               ,options)
         
-        if file_name:
+        if file_name and ok:
             self.figure.savefig(file_name[0],dpi=600,figsize=(10,10))
     
     def spectrum_calibrate(self):
@@ -476,6 +480,7 @@ class Viewer(QMainWindow):
                     Save_Spe(self.loaded_spectrum[text],text,name)
                 except:
                     pass
+                
     def time_display(self):
         self.di=Time_Window()
         
@@ -511,8 +516,10 @@ class Viewer(QMainWindow):
         editor.setSizePolicy(self.size_policy, self.size_policy)
         fore_cps=self.roi_counts[foreground]
         back_cps=self.roi_counts[background]
-        editorappd=['Foreground: {}: {:.3f} +\- {:.3f} cps'.format(foreground,fore_cps,fore_cps**0.5),
-                    'Background: {}: {:.3f} +\- {:.3f} cps'.format(background,back_cps,back_cps**0.5),
+        editorappd=['Foreground: {}: {:.3f} +\- {:.3f} cps'.format(
+            foreground,fore_cps,fore_cps**0.5),
+                    'Background: {}: {:.3f} +\- {:.3f} cps'.format(
+                        background,back_cps,back_cps**0.5),
                     'Net: {:.3f} +\- {:.3f} cps'.format(net_count_rate,net_uncer)
                     ]
         for i in editorappd:
@@ -536,7 +543,6 @@ class Viewer(QMainWindow):
         index=(np.abs(cts-io/2)).argmin()
         t_12=time[index]
         lambd=np.log(2)/t_12
-        print(lambd)
         fit=[io*np.exp(-lambd*i) for i in time]
         plt.plot(time[1::],cts[1::],'*')
         # plt.plot(time[1::],fit[1::])
@@ -609,9 +615,31 @@ class Viewer(QMainWindow):
             Movie.save_gaussian()
             Movie.save_probability()
             
-    def find_peaks(self,x):
-        peaks, _ = signal.find_peaks(x,width=3,distance=2)
-        return peaks
+    def find_peaks(self):
+        x=self.loaded_spectrum[self.plotted_spectrum[0]][1]
+        peaks, properties = signal.find_peaks(x,width=3,distance=2)
+        e_res=[]
+        widths=properties['widths'] #the fwhm of the peak
+        left=properties['left_ips'] #left point of the fwhm
+        right=properties['right_ips'] #right point of the fwhm
+        sigma=[i/(2*np.sqrt(2*np.log(2))) for i in widths] #standard deviation
+        left_sig=[]
+        right_sig=[]
+        #recalculate the peak location based on the average fo the left and right fwhm
+        for i in range(len(peaks)):
+            avg=(left[i]+right[i])/2
+            peaks[i]=avg
+            left_sig.append(avg-4*sigma[i])
+            right_sig.append(avg+4*sigma[i])
+            e_res.append(widths[i]/avg*100)
+            
+        plt.plot(x)
+        for i in range(len(peaks)):
+            plt.axvline(peaks[i])
+        plt.axvspan(left_sig[2],right_sig[2],facecolor='g',alpha=0.5)
+        print(e_res)
+        plt.show()
+        return peaks,e_res
             
 if __name__=="__main__":
     app=QApplication(sys.argv)
