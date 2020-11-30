@@ -635,7 +635,7 @@ class Viewer(QMainWindow):
             
         plt.plot(x)
         for i in range(len(peaks)):
-            plt.axvline(peaks[i])
+            plt.axvline(peaks[i],'r--')
         plt.axvspan(left_sig[2],right_sig[2],facecolor='g',alpha=0.5)
         print(e_res)
         plt.show()
