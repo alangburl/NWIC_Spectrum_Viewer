@@ -404,7 +404,7 @@ class List_Mode_Viewer(QMainWindow):
         
     def save_spectrum(self):
         items=['Region 1','Region 2','Time Decay']
-        self.updater()
+        # self.updater()
         text,ok=QInputDialog.getItem(self,'Save Spectrum','Saving:',
                                      items,0,False)
         if ok and text:
