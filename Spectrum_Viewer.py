@@ -616,7 +616,13 @@ class Viewer(QMainWindow):
             Movie.save_probability()
             
     def find_peaks(self):
+        #first get all the plotted spectrum names
         x=self.loaded_spectrum[self.plotted_spectrum[0]][1]
+        #then let the user select which one to pick
+        
+        #then get the counts to analyze
+        
+        
         peaks, properties = signal.find_peaks(x,width=3,distance=2)
         e_res=[]
         widths=properties['widths'] #the fwhm of the peak
@@ -635,7 +641,7 @@ class Viewer(QMainWindow):
             
         plt.plot(x)
         for i in range(len(peaks)):
-            plt.axvline(peaks[i],'r--')
+            plt.axvline(peaks[i],linestyle='--',color='r')
         plt.axvspan(left_sig[2],right_sig[2],facecolor='g',alpha=0.5)
         print(e_res)
         plt.show()

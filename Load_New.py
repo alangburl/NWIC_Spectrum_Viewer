@@ -110,7 +110,7 @@ class Load_New(QWidget):
         counts=self.counts_loc.text()
         calibration=self.calibration_loc.text()
         
-        if '.spe' in counts:
+        if '.spe' in counts.lower():
             self.counts,scale=self.load_spe(counts)
         else:
             f=open(counts,'r')
@@ -141,19 +141,35 @@ class Load_New(QWidget):
             pass
         self.close()
         
+    
     def load_spe(self,file_path):
         '''Load a spectrum file type using the SPE file format'''
         f=open(file_path,'r')
         data=f.readlines()
         f.close()
         
-        timer=float(data[3].split()[0])
         counts=[]
-        num_counts=int(data[7].split()[1])
-        
-        for i in range(8,num_counts+8):
+        channels=[]
+        # num_counts=int(data[7].split()[1])
+        #first find the index for $DATA so
+        s_index=0
+        e_index=0
+        timer=0
+        for i in range(len(data)):
+            if '$MEAS_TIM:' in data[i]:
+                timer=float(data[i+1].split(sep=' ')[0])
+            if '$DATA:' in data[i]:
+                s_index=i+2
+                
+        for i in range(s_index,len(data)):
+            if '$' in data[i]:
+                e_index=i-1
+                break
+        print(s_index,e_index)
+        for i in range(s_index,e_index):
             counts.append(float(data[i]))
-        return counts, timer
+            channels.append(i-s_index)
+        return counts,timer
         
     
 if __name__=="__main__":

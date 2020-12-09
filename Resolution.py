@@ -18,8 +18,8 @@ class Resolution(QMainWindow):
         QFont'''
         super().__init__()
         self.spectrum=spectrum
-        self.peaks,self.eres,self.l,self.r=self.find_peaks(spectrum[0],
-                                                           width,distance)
+        # self.peaks,self.eres,self.l,self.r=self.find_peaks(spectrum[0],
+                                                           # width,distance)
         self.menu()
         self.showMaximized()
         self.geometry()
@@ -55,7 +55,7 @@ class Resolution(QMainWindow):
         self.save_image.triggered.connect(self.saver)
         self.menuFile.addAction(self.save_image)
         
-    def save_fig(self):
+    def saver(self):
         options='Portable Network Graphics (*.png);;'
         options_='Joint Photographic Experts Group(*.jpg)'
         options=options+options_
@@ -64,6 +64,7 @@ class Resolution(QMainWindow):
         
         if file_name and ok:
             self.figure1.savefig(file_name[0],dpi=600,figsize=(10,10))
+
 
     def find_peaks(self,x,width,distance):
         peaks, properties = signal.find_peaks(x,width=width,distance=distance)
@@ -86,6 +87,6 @@ class Resolution(QMainWindow):
     
 if __name__=="__main__":
     app=QApplication(sys.argv)
-    ex=Resolution(1,1,1,1)
+    ex=Resolution(10,1,1,1)
     sys.exit(app.exec_())
         

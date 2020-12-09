@@ -2,6 +2,8 @@
 from Calibration import Detector_Calibration as cali
 from Rebin import Rebins
 #prefined imports
+import numpy as np
+from scipy import signal
 import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              QSizePolicy,QLineEdit,
@@ -164,7 +166,7 @@ class Calibration_Window(QMainWindow):
             self.calibration_lines=[]
             self.counts=[]
             self.channels=[]
-            if '.spe' not in fileName:
+            if '.spe' not in fileName.lower():
                 f=open(fileName,'r')
                 f_data=f.readlines()
                 f.close()
@@ -187,6 +189,25 @@ class Calibration_Window(QMainWindow):
             self.rebin_action_save.setEnabled(True)
             self.replot(left_lim=0,right_lim=len(self.channels)+0.01*len(self.channels))
             
+    def find_peaks(self,x,width,distance):
+        peaks, properties = signal.find_peaks(x,width=width,distance=distance)
+        e_res=[]
+        widths=properties['widths'] #the fwhm of the peak
+        left=properties['left_ips'] #left point of the fwhm
+        right=properties['right_ips'] #right point of the fwhm
+        sigma=[i/(2*np.sqrt(2*np.log(2))) for i in widths] #standard deviation
+        left_sig=[]
+        right_sig=[]
+        #recalculate the peak location based on the average fo the left and right fwhm
+        for i in range(len(peaks)):
+            avg=(left[i]+right[i])/2
+            peaks[i]=avg
+            left_sig.append(avg-4*sigma[i])
+            right_sig.append(avg+4*sigma[i])
+            e_res.append(widths[i]/avg*100)
+            
+        return peaks,e_res,left_sig,right_sig
+    
     def replot(self,left_lim=None,right_lim=None):
         '''Redraw the uncalibrated spectrum'''
         l,r=self.ax.get_xlim()
@@ -203,8 +224,13 @@ class Calibration_Window(QMainWindow):
             self.ax.set_xlim(left_lim,right_lim)
         else:
             self.ax.set_xlim(l,r)
+        #let an algorithm find the peaks
+        peaks=self.find_peaks(self.counts,3,2)[0]
+        for i in peaks:
+            self.ax.axvline(x=i,color='r',linestyle='--',linewidth=0.5)
         for i in self.calibration_lines:
             self.ax.axvline(x=i,color='k',linestyle='--')
+            
         self.canvas.draw()
         self.figure.tight_layout()
         self.replot_calibration()
@@ -336,13 +362,13 @@ class Calibration_Window(QMainWindow):
         
         counts=[]
         channels=[]
-        num_counts=int(data[7].split()[1])
+        # num_counts=int(data[7].split()[1])
         #first find the index for $DATA so
         s_index=0
         e_index=0
         for i in range(len(data)):
             if '$DATA:' in data[i]:
-                s_index=i+1
+                s_index=i+2
         for i in range(s_index,len(data)):
             if '$' in data[i]:
                 e_index=i-1
@@ -350,8 +376,8 @@ class Calibration_Window(QMainWindow):
             
         for i in range(s_index,e_index):
             counts.append(float(data[i]))
-            channels.append(i-8)
-        return counts
+            channels.append(i-s_index)
+        return counts,channels
     
     def rebin(self):
         '''rebing the data and the replot it'''
@@ -362,7 +388,8 @@ class Calibration_Window(QMainWindow):
             s=int(selected)
             self.counts=Rebins(self.counts,s).rebinner()
             self.channels=[i for i in range(len(self.counts))]
-            self.replot(left_lim=0,right_lim=len(self.channels)+0.01*len(self.channels))
+            self.replot(left_lim=0,right_lim=len(self.channels)+\
+                        0.01*len(self.channels))
         
 if __name__=="__main__":
     app=QApplication(sys.argv)
