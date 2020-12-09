@@ -617,35 +617,46 @@ class Viewer(QMainWindow):
             
     def find_peaks(self):
         #first get all the plotted spectrum names
-        x=self.loaded_spectrum[self.plotted_spectrum[0]][1]
+        loaded_spectrum=self.plotted_spectrum
+        selection,ok=QInputDialog.getItem(self, 'Energy Resolution', 
+                                          'Selection', loaded_spectrum,
+                                          0,False)
+        if ok:
+            x=self.loaded_spectrum[selection][1]
+            y=self.loaded_spectrum[selection][0]
         #then let the user select which one to pick
         
         #then get the counts to analyze
         
         
-        peaks, properties = signal.find_peaks(x,width=3,distance=2)
-        e_res=[]
-        widths=properties['widths'] #the fwhm of the peak
-        left=properties['left_ips'] #left point of the fwhm
-        right=properties['right_ips'] #right point of the fwhm
-        sigma=[i/(2*np.sqrt(2*np.log(2))) for i in widths] #standard deviation
-        left_sig=[]
-        right_sig=[]
-        #recalculate the peak location based on the average fo the left and right fwhm
-        for i in range(len(peaks)):
-            avg=(left[i]+right[i])/2
-            peaks[i]=avg
-            left_sig.append(avg-4*sigma[i])
-            right_sig.append(avg+4*sigma[i])
-            e_res.append(widths[i]/avg*100)
-            
-        plt.plot(x)
-        for i in range(len(peaks)):
-            plt.axvline(peaks[i],linestyle='--',color='r')
-        plt.axvspan(left_sig[2],right_sig[2],facecolor='g',alpha=0.5)
-        print(e_res)
-        plt.show()
-        return peaks,e_res
+            peaks, properties = signal.find_peaks(x,width=3,distance=2)
+            e_res=[]
+            widths=properties['widths'] #the fwhm of the peak
+            left=properties['left_ips'] #left point of the fwhm
+            right=properties['right_ips'] #right point of the fwhm
+            sigma=[i/(2*np.sqrt(2*np.log(2))) for i in widths] #standard deviation
+            left_sig=[]
+            right_sig=[]
+            #recalculate the peak location based on the average fo the left and right fwhm
+            for i in range(len(peaks)):
+                avg=(left[i]+right[i])/2
+                peaks[i]=avg
+                left_sig.append(avg-4*sigma[i])
+                right_sig.append(avg+4*sigma[i])
+                e_res.append(widths[i]/avg*100)
+                
+            plt.plot(y,x)
+            plt.yscale('log')
+            _,y_max=plt.gca().get_ylim()
+            y_max=y_max-.5*y_max
+            for i in range(len(peaks)):
+                plt.axvline(y[int(peaks[i])],linestyle='--',color='m',linewidth=1)
+                v=y[int(peaks[i])]+0.005*y[int(peaks[i])]
+                plt.annotate('{:.2f}%'.format(e_res[i]), xy=(v,y_max), 
+                             rotation='vertical',color='m')
+            # plt.axvspan(y[int(left_sig[2])],y[int(right_sig[2])],facecolor='g',alpha=0.5)
+            plt.show()
+            return peaks,e_res
             
 if __name__=="__main__":
     app=QApplication(sys.argv)
