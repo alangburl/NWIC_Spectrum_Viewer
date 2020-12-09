@@ -33,7 +33,7 @@ class Gaussian_Movies():
         
     def gaussian(self):
         fig = plt.figure(1)
-        ax1 = plt.axes(xlim=(0, 600), ylim=(0,.15))
+        ax1 = plt.axes(xlim=(0, 7500), ylim=(0,.15))
         line, = ax1.plot([], [], lw=2)
         plt.xlabel('Counts')
         plt.ylabel('Probability')

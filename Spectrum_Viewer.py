@@ -356,7 +356,7 @@ class Viewer(QMainWindow):
                                               ,options)
         
         if file_name and ok:
-            self.figure.savefig(file_name[0],dpi=600,figsize=(10,10))
+            self.figure.savefig(file_name,dpi=600,figsize=(10,10))
     
     def spectrum_calibrate(self):
         '''Launch a calibration window
@@ -565,13 +565,13 @@ class Viewer(QMainWindow):
                            'Foreground List Mode File',"",
                            'Comma Seperated File (*.csv);;Text File (*.txt)')
         if ok and ok2:
-            num,ok3=QInputDialog.getInt(self,'Start Value','Value:',200,10,3000)
+            num,ok3=QInputDialog.getInt(self,'Start Value','Value:',200,0,3000)
             if ok3:
                 evals=np.linspace(num,1800,181)
                 detection_probability=DT(file_namef,file_nameb,evals)
                 probs=detection_probability.probs
                 probs=[i*100 for i in probs]
-                print(probs[0:50])
+                # print(probs[0:50])
                 time_detect=np.interp(99,probs,evals)
                 plt.figure(1)
                 plt.plot(evals, probs,'*')

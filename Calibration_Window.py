@@ -1,5 +1,6 @@
 #import calibration files
 from Calibration import Detector_Calibration as cali
+from Rebin import Rebins
 #prefined imports
 import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
@@ -43,6 +44,16 @@ class Calibration_Window(QMainWindow):
         self.load_new.setShortcut('Ctrl+O')
         self.load_new.setToolTip('Load a raw spectrum')
         
+        self.rebin_action=QAction('&Rebin Data')
+        self.rebin_action.triggered.connect(self.rebin)
+        self.rebin_action.setEnabled(False)
+        self.rebin_action.setShortcut('Ctrl+B')
+        
+        self.rebin_action_save=QAction('&Save Rebin Count')
+        self.rebin_action_save.triggered.connect(self.save_rebinned)
+        self.rebin_action_save.setEnabled(False)
+        self.rebin_action_save.setShortcut('Ctrl+Shift+S')
+        
         self.calibrateAction=QAction('&Calibrate')
         self.calibrateAction.triggered.connect(self.calibration)
         self.calibrateAction.setShortcut('Ctrl+C')
@@ -52,8 +63,9 @@ class Calibration_Window(QMainWindow):
         self.save.triggered.connect(self.save_)
         self.save.setShortcut('Ctrl+S')
         self.save.setDisabled(True)
-        self.menuFile.addActions([self.load_new,self.calibrateAction,
-                                  self.save])
+        self.menuFile.addActions([self.load_new,self.rebin_action,
+                                  self.calibrateAction,
+                                  self.save,self.rebin_action_save])
     
     def geometry(self):
         '''Setup the geometry
@@ -157,15 +169,22 @@ class Calibration_Window(QMainWindow):
                 f_data=f.readlines()
                 f.close()
                 
-                for i in range(len(f_data)):
-                    try:                    
-                        self.counts.append(float(f_data[i].split(sep=',')[0]))
-                        self.channels.append(i)
-                    except:
-                        a=True
+                headers=f_data[0].split(sep=',')
+                headers[-1]=headers[-1].split(sep='\n')[0]
+                item,ok=QInputDialog.getItem(self,'Calibration Type','Calibration:',
+                                                     headers,0,False)
+                if ok:
+                    column=headers.index(item)
+                    for i in range(len(f_data)):
+                        try:                    
+                            self.counts.append(float(f_data[i].split(sep=',')[column]))
+                            self.channels.append(i)
+                        except:
+                            True
             else:
                 self.counts,self.channels=self.load_spe(fileName)
-                
+            self.rebin_action.setEnabled(True)    
+            self.rebin_action_save.setEnabled(True)
             self.replot(left_lim=0,right_lim=len(self.channels)+0.01*len(self.channels))
             
     def replot(self,left_lim=None,right_lim=None):
@@ -286,6 +305,14 @@ class Calibration_Window(QMainWindow):
             f=open(name[0],'w')
             for i in self.cal_values:
                 f.write('{:.8f}\n'.format(i))
+                
+    def save_rebinned(self):
+        name=QFileDialog.getSaveFileName(self,'Calibration Data','',
+                         'Text File (*.txt);; Comma Seperated File (*.csv)')
+        if name:
+            f=open(name[0],'w')
+            for i in self.counts:
+                f.write('{:.8f}\n'.format(i))
     
     def update(self,index):
         item=self.loaded.itemFromIndex(index)
@@ -310,11 +337,32 @@ class Calibration_Window(QMainWindow):
         counts=[]
         channels=[]
         num_counts=int(data[7].split()[1])
-        
-        for i in range(8,num_counts+8):
+        #first find the index for $DATA so
+        s_index=0
+        e_index=0
+        for i in range(len(data)):
+            if '$DATA:' in data[i]:
+                s_index=i+1
+        for i in range(s_index,len(data)):
+            if '$' in data[i]:
+                e_index=i-1
+                break
+            
+        for i in range(s_index,e_index):
             counts.append(float(data[i]))
             channels.append(i-8)
         return counts
+    
+    def rebin(self):
+        '''rebing the data and the replot it'''
+        values=['2','4']
+        selected,ok=QInputDialog.getItem(self,'Select Rebin','Bins to combine',
+                                         values,0,False)
+        if ok:
+            s=int(selected)
+            self.counts=Rebins(self.counts,s).rebinner()
+            self.channels=[i for i in range(len(self.counts))]
+            self.replot(left_lim=0,right_lim=len(self.channels)+0.01*len(self.channels))
         
 if __name__=="__main__":
     app=QApplication(sys.argv)
