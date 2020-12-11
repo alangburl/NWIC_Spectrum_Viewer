@@ -16,5 +16,5 @@ files_to_build=['conversion_setup.py',
                 'timing_setup.py']
 
 for i in files_to_build:
-    subprocess.check_call(['python', i, 'build_ext', '--inplace'])
+    subprocess.check_call(['python', i, 'build'])
     
