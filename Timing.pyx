@@ -106,3 +106,26 @@ def ROI_Timing(double[:] sync_time,int s, double[:] detector_time,
             a=True
 
     return roi_pulses[0:j-1], roi_times[0:j-1]
+
+def Splitter(double[:] pulse_times, int num_pulses,
+             double start_time, double end_time):
+    cdef int beg,ende,i
+    
+
+    for i in range(num_pulses):
+        if start_time==0:
+            beg=0
+            break
+        elif start_time<=pulse_times[i]:
+            beg=i
+            break
+    for i in range(num_pulses):
+        if end_time>=pulse_times[-1]:
+            ende=num_pulses
+            break
+        elif pulse_times[i]>=end_time:
+            ende=i
+            break
+    return beg, ende
+        
+    

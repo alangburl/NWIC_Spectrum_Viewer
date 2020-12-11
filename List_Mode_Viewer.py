@@ -241,8 +241,14 @@ class List_Mode_Viewer(QMainWindow):
         print('Imported and conveted in {:.2f}s'.format(time.time()-s))
         winsound.MessageBeep()
         delt=(self.sync_time[2]-self.sync_time[1])
-        self.offset.setMaximum(delt-self.duty_cycle.value()/100*delt)
-        self.offset.setMinimum(-(delt*self.duty_cycle.value()/100)*.5)
+        #set the maximum value for the end time and start times
+        maxe=int((self.list_time[-1]-self.list_time[0])*1e-6)
+        self.end_time.setMaximum(maxe)
+        self.end_time.setValue(maxe)
+        self.start_time.setMaximum(maxe-1)
+        self.start_time.setValue(0)
+        self.offset.setMaximum(int(delt-self.duty_cycle.value()/100*delt))
+        self.offset.setMinimum(int(-(delt*self.duty_cycle.value()/100)*.5))
         self.view_pop.setEnabled(True)
         self.updater()
         
@@ -251,6 +257,38 @@ class List_Mode_Viewer(QMainWindow):
         self.popup.setWindowTitle('View Controls')
         self.popup.setSizePolicy(self.size_policy,self.size_policy)
         self.popup.setFont(self.font)
+        
+        start_label=QLabel('Start Time: s')
+        start_label.setSizePolicy(self.size_policy, self.size_policy)
+        start_label.setFont(self.font)
+        self.s_label=start_label
+        
+        self.start_time=QSlider(Qt.Horizontal)
+        self.start_time.setSizePolicy(self.size_policy,self.size_policy)
+        self.start_time.setFont(self.font)
+        self.start_time.setMinimum(0)
+        self.start_time.setMaximum(100)
+        self.start_time.setSingleStep(1)
+        self.start_time.setValue(10)
+        self.start_time.setTickInterval(100)
+        self.start_time.setTickPosition(QSlider.TicksBelow)
+        self.start_time.valueChanged.connect(self.start_updated)
+        
+        end_label=QLabel('End Time: s')
+        end_label.setSizePolicy(self.size_policy, self.size_policy)
+        end_label.setFont(self.font)
+        self.e_label=end_label
+        
+        self.end_time=QSlider(Qt.Horizontal)
+        self.end_time.setSizePolicy(self.size_policy,self.size_policy)
+        self.end_time.setFont(self.font)
+        self.end_time.setMinimum(1)
+        self.end_time.setMaximum(100)
+        self.end_time.setSingleStep(1)
+        self.end_time.setValue(10)
+        self.end_time.setTickInterval(100)
+        self.end_time.setTickPosition(QSlider.TicksBelow)
+        self.end_time.valueChanged.connect(self.end_updated)
         
         self.duty_label=QLabel('Duty Cycle [%]: ')
         self.duty_label.setSizePolicy(self.size_policy,self.size_policy)
@@ -265,13 +303,6 @@ class List_Mode_Viewer(QMainWindow):
         self.duty_cycle.setValue(10)
         self.duty_cycle.setTickPosition(QSlider.TicksBelow)
         self.duty_cycle.valueChanged.connect(self.duty_changed)
-        
-        self.duty_indicator=QLineEdit()
-        self.duty_indicator.setSizePolicy(self.size_policy,self.size_policy)
-        self.duty_indicator.setFont(self.font)
-        self.duty_indicator.setToolTip(
-                'Duty cycle of the sync pulse from\neutron generator')
-        self.duty_indicator.setReadOnly(True)
         
         self.offset_label=QLabel('Offset from sync [us]: ')
         self.offset_label.setSizePolicy(self.size_policy,self.size_policy)
@@ -288,14 +319,7 @@ class List_Mode_Viewer(QMainWindow):
         self.offset.setTickInterval(100)
         self.offset.setToolTip(
             'After end of pulse to divide into Region 1 and 2 in micro seconds')
-#        self.offset.valueChanged.connect(self.offset_changed)
         self.offset.valueChanged.connect(self.offset_changed)
-        self.offset_indicator=QLineEdit()
-        self.offset_indicator.setSizePolicy(self.size_policy,self.size_policy)
-        self.offset_indicator.setFont(self.font)
-        self.offset_indicator.setToolTip(
-            'After end of pulse to divide into Region 1 and 2 in micro seconds')
-        self.offset_indicator.setReadOnly(True)
         
         self.update=QPushButton('Update')
         self.update.setSizePolicy(self.size_policy,self.size_policy)
@@ -303,36 +327,55 @@ class List_Mode_Viewer(QMainWindow):
         self.update.clicked.connect(self.updater)
         
         layout=QGridLayout()
-        layout.addWidget(self.duty_label,0,0)
-        layout.addWidget(self.duty_cycle,0,1)
-        layout.addWidget(self.duty_indicator,0,2)
-        layout.addWidget(self.offset_label,1,0)
-        layout.addWidget(self.offset,1,1)
-        layout.addWidget(self.offset_indicator,1,2)
-        layout.addWidget(self.update,2,0)
+        layout.addWidget(start_label,0,0)
+        layout.addWidget(self.start_time,0,1)
+        layout.addWidget(end_label, 1, 0)
+        layout.addWidget(self.end_time,1,1)
+        layout.addWidget(self.duty_label,2,0)
+        layout.addWidget(self.duty_cycle,2,1)
+        layout.addWidget(self.offset_label,3,0)
+        layout.addWidget(self.offset,3,1)
+        layout.addWidget(self.update,4,0)
         
         self.popup.setLayout(layout)
         self.duty_changed()
         self.offset_changed()
         self.popup.show()
         
+    def start_updated(self):
+        time=self.start_time.value()
+        self.s_label.setText('Start Time: {:.2f}s'.format(time))
+        self.end_time.setMinimum(time+1)
+
+    def end_updated(self):
+        time=self.end_time.value()
+        self.e_label.setText('End Time: {:.2f}s'.format(time))
+        
     def duty_changed(self):
-        self.duty_indicator.setText(str(self.duty_cycle.value()))
+        self.duty_label.setText('Duty Cycle: {:.2f}%'.format(
+            self.duty_cycle.value()))
         
     def offset_changed(self):
-        self.offset_indicator.setText(str((self.offset.value())))
+        self.offset_label.setText('Offset from sync: {:.1f} us'.format(
+            self.offset.value()))
         
     def updater(self):
         delta_time=self.duty_cycle.value()/100*(
                 self.sync_time[2]-self.sync_time[1])
         delt=(self.sync_time[2]-self.sync_time[1])
-        self.offset.setMinimum(-(delt*self.duty_cycle.value()/100)*.75)
+        self.offset.setMinimum(-int((delt*self.duty_cycle.value()/100)*.75))
         sync_width=delta_time
         delta_time+=self.offset.value()
         self.delta_time=delta_time
+        start=float(self.start_time.value())*1e6
+        end=float(self.end_time.value())*1e6
+        sb,se=Timing.Splitter(self.sync_time,len(self.sync_time),
+                                            start,end)
+        cb,ce=Timing.Splitter(self.list_time,len(self.list_time),
+                                            start,end)
         self.region1_spec,self.region2_spec,self.time=self.list_mode_processor.timing(
-                                        delta_time,self.sync_time,
-                                        self.list_time,self.list_channel)
+                                        delta_time,self.sync_time[sb:se],
+                                        self.list_time[cb:ce],self.list_channel[cb:ce])
         total=[]
         for i in range(len(list(self.region2_spec.values()))):
             total.append(list(self.region2_spec.values())[i]+list(
