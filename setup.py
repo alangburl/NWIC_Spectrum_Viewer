@@ -11,7 +11,7 @@ except ImportError as e:
     install=[r.decode().split('==')[0] for r in reqs.split()]
     print('Installed: {}'.format(install))
 
-files_to_build=['covnersion_setup.py',
+files_to_build=['conversion_setup.py',
                 'ROI_Arrival_setup.py',
                 'timing_setup.py']
 
