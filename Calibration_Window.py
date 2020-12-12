@@ -172,11 +172,18 @@ class Calibration_Window(QMainWindow):
                 f.close()
                 
                 headers=f_data[0].split(sep=',')
-                headers[-1]=headers[-1].split(sep='\n')[0]
-                item,ok=QInputDialog.getItem(self,'Calibration Type','Calibration:',
-                                                     headers,0,False)
-                if ok:
-                    column=headers.index(item)
+                h_space=f_data[0].split(sep=' ')
+                mult=False
+                if len(headers)>1 or len(h_space)>1:
+                    headers[-1]=headers[-1].split(sep='\n')[0]
+                    item,ok=QInputDialog.getItem(self,'Select Data Header','Header:',
+                                                         headers,0,False)
+                    if ok:
+                        column=headers.index(item)
+                else:
+                    mult=True
+                    column=0
+                if ok or mult:
                     for i in range(len(f_data)):
                         try:                    
                             self.counts.append(float(f_data[i].split(sep=',')[column]))
@@ -388,6 +395,24 @@ class Calibration_Window(QMainWindow):
             s=int(selected)
             self.counts=Rebins(self.counts,s).rebinner()
             self.channels=[i for i in range(len(self.counts))]
+            #need to redo the calibration lines
+            for i in range(len(self.calibration_lines)):
+                self.calibration_lines[i]=round(self.calibration_lines[i]/2,2)
+            #next take care of the values shown on the right
+            self.loaded.removeRows(0,self.loaded.rowCount())
+            channels=self.calibration_lines
+            energies=list(self.energies.values())
+            channels=[float(i) for i in channels]
+            energies=[float(j) for j in energies]
+            self.energies={}
+            for i in range(len(energies)):
+                self.energies['{:.2f}'.format(channels[i])]='{:.4f}'.format(energies[i])
+            for i in self.calibration_lines:
+                self.loaded.appendRow(
+                        QStandardItem(
+                                'Ch: {:.2f}->Energy: {} MeV'.format(
+                                        i,self.energies[str(i)])))
+                    
             self.replot(left_lim=0,right_lim=len(self.channels)+\
                         0.01*len(self.channels))
         
