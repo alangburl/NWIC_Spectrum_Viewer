@@ -332,18 +332,18 @@ class Calibration_Window(QMainWindow):
             self.save.setEnabled(True)
         
     def save_(self):
-        name=QFileDialog.getSaveFileName(self,'Calibration Data','',
+        name,ok=QFileDialog.getSaveFileName(self,'Calibration Data','',
                          'Text File (*.txt);; Comma Seperated File (*.csv)')
-        if name:
-            f=open(name[0],'w')
+        if ok:
+            f=open(name,'w')
             for i in self.cal_values:
                 f.write('{:.8f}\n'.format(i))
                 
     def save_rebinned(self):
-        name=QFileDialog.getSaveFileName(self,'Calibration Data','',
+        name,ok=QFileDialog.getSaveFileName(self,'Calibration Data','',
                          'Text File (*.txt);; Comma Seperated File (*.csv)')
-        if name:
-            f=open(name[0],'w')
+        if ok:
+            f=open(name,'w')
             for i in self.counts:
                 f.write('{:.8f}\n'.format(i))
     
