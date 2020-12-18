@@ -1,5 +1,5 @@
 from MDA_FAR import FAR_MDM as detect
-
+import time as timer
 class Detection_Probability():
     def __init__(self,fore_file,back_file,analysis_times=[600,1200,1800]):
         super().__init__()
@@ -11,19 +11,19 @@ class Detection_Probability():
         back_sums=self.time_sum(back_time,analysis_times)
         #initialize the mdm class with each of the points
         points=[0]*len(analysis_times)
+        s=timer.time()
         for i in range(len(analysis_times)):
+            s1=timer.time()
             points[i]=detect(fore_sums[i],back_sums[i])
+            print('Time step {} analyzed in {:.2f}s'.format(i,timer.time()-s1))
         self.f_sums,self.b_sums,self.a_times=fore_sums,back_sums,analysis_times
-        #save the accumulated times to create an animation showing the gaussians
-        # f=open('sums.csv','w')
-        # for i in range(len(fore_sums)):
-        #     f.write('{},{},{}\n'.format(fore_sums[i],back_sums[i],analysis_times[i]))
-        # f.close()
+        print('Analyzed Detection Probability in {:.2f}s'.format(timer.time()-s))
         #evaluate the different points to get the detection probabilities and 
         #store as an attribute of the class
         self.probs=[0]*len(analysis_times)
         for j in range(len(points)):
             self.probs[j]=points[j].detection_probability()
+        
     def read_file(self,file_name):
         f=open(file_name,'r')
         data=f.readlines()

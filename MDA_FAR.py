@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import CDF
 
 class FAR_MDM():
     def __init__(self,fore_cts,back_cts,FAR=1):
@@ -25,8 +26,8 @@ class FAR_MDM():
         if fore>20:
             fgd=self.gaussian_distribution(fore, np.sqrt(fore))
             bkg=self.gaussian_distribution(back, np.sqrt(back))
-        label_p=['Mean Foreground: {}'.format(fore),[fore+.1*fore,max(fgd)],
-                 'Mean Background: {}'.format(back),[back+.1*back,max(bkg)]]
+        # label_p=['Mean Foreground: {}'.format(fore),[fore+.1*fore,max(fgd)],
+        #          'Mean Background: {}'.format(back),[back+.1*back,max(bkg)]]
         # self.generate_plot([self.counts,self.counts],[fgd,bkg],
         #                     ['Foreground','Background'],'','Counts',
         #                     'Probability',label_points=label_p)
@@ -35,13 +36,15 @@ class FAR_MDM():
     def generate_cdf(self,fore,back):
         fore1=[]
         back1=[]
-        for i in range(len(self.counts)):
-            fore1.append(np.trapz(fore[0:i]))
-            back1.append(np.trapz(back[0:i]))
-        ind=self.find_CI(self.far,back1)
-        # self.generate_plot([self.counts,self.counts],[fore1,back1],
-        #                     ['Foreground','Background'],'','Counts',
-        #                     'Probability',2,[self.counts[ind]])
+        fore=np.asarray(fore)
+        back=np.asarray(back)
+        counts=np.asarray(self.counts)
+        fore1=CDF.CDF_Generator(fore,counts)
+        back1=CDF.CDF_Generator(back,counts)
+        # for i in range(len(self.counts)):
+        #     fore1.append(np.trapz(fore[0:i]))
+        #     back1.append(np.trapz(back[0:i]))
+            
         return fore1, back1
     
     def find_CI(self,far,back):

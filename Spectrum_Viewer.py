@@ -7,12 +7,13 @@ from List_Mode_Viewer import List_Mode_Viewer
 from std_calculation import net_std
 from Decay import Background_Decay as bkg
 from Animated_Gaussians import Movie_Maker as movie
+from Probability_Viewer import Plotter
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
 #prefined imports
-import sys
+import sys,time
 from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QGridLayout,
                              QSizePolicy,QLineEdit,
                              QMainWindow,QAction,QVBoxLayout
@@ -103,10 +104,12 @@ class Viewer(QMainWindow):
         self.dieaway.triggered.connect(self.bck_die_away)
         self.video=QAction('&Save Probability Videos')
         self.video.triggered.connect(self.save_detec_videos)
+        self.view_probs=QAction('&View Detection Probability')
+        self.view_probs.triggered.connect(self.view_probabilities)
         
         self.menuList.addActions([self.timing_window,self.list_mode,
                                   self.detection_probability,
-                                  self.dieaway,self.video])
+                                  self.dieaway,self.video,self.view_probs])
         
     def geometry(self):
         self.open_=QDockWidget('Loaded Spectrums')
@@ -539,21 +542,21 @@ class Viewer(QMainWindow):
         num_bins,ok2=QInputDialog.getInt(self,'Enter number of bins','Bins:',300,0,10000)
         if file_name!='' and ok and ok2:
             cts,time=bkg(file_name,num_bins).process_data()
-        io=max(cts[1::])
-        index=(np.abs(cts-io/2)).argmin()
-        t_12=time[index]
-        lambd=np.log(2)/t_12
-        fit=[io*np.exp(-lambd*i) for i in time]
-        plt.plot(time[1::],cts[1::],'*')
-        # plt.plot(time[1::],fit[1::])
-        plt.ylabel('Count Rate (cps)')
-        plt.xlabel('Time (s)')
-        plt.show()
-        f=open('Back_Die_Away.csv','w')
-        f.write('Time,Counts\n')
-        for i in range(len(cts)):
-            f.write('{:.5f},{:.5f}\n'.format(cts[i],time[i]))
-        f.close()
+            io=max(cts[1::])
+            index=(np.abs(cts-io/2)).argmin()
+            t_12=time[index]
+            lambd=np.log(2)/t_12
+            fit=[io*np.exp(-lambd*i) for i in time]
+            plt.plot(time[1::],cts[1::],'*')
+            # plt.plot(time[1::],fit[1::])
+            plt.ylabel('Count Rate (cps)')
+            plt.xlabel('Time (s)')
+            plt.show()
+            f=open('Back_Die_Away.csv','w')
+            f.write('Time,Counts\n')
+            for i in range(len(cts)):
+                f.write('{:.5f},{:.5f}\n'.format(cts[i],time[i]))
+            f.close()
         
     def detec_prob(self):
         #get the foreground and background file names and info
@@ -565,18 +568,30 @@ class Viewer(QMainWindow):
                            'Foreground List Mode File',"",
                            'Comma Seperated File (*.csv);;Text File (*.txt)')
         if ok and ok2:
-            num,ok3=QInputDialog.getInt(self,'Start Value','Value:',200,0,3000)
+            num,ok3=QInputDialog.getInt(self,'Detection Probability',
+                                        'Percentage:',99,0,100)
             if ok3:
-                evals=np.linspace(num,1800,181)
+                evals=np.linspace(0,1800,181)
                 detection_probability=DT(file_namef,file_nameb,evals)
                 probs=detection_probability.probs
                 probs=[i*100 for i in probs]
-                # print(probs[0:50])
-                time_detect=np.interp(99,probs,evals)
+                #need to parse through the probabilities and find the first
+                #real data point that doesn't represent a statistical anamoly
+                #set a lower threshold to start counting at
+                threshold=90 #if the probability drops below this
+                s_index=0
+                for i in range(len(probs)):
+                    if probs[i]<=threshold:
+                        s_index=i
+                        break
+                probs=probs[s_index::]
+                evals=evals[s_index::]
+                time_detect=np.interp(num,probs,evals)
                 plt.figure(1)
                 plt.plot(evals, probs,'*')
                 plt.axvline(time_detect,
-                            label='Time to 99% detection probability: {:.2f}s'.format(time_detect))
+                            label='Time to {}% detection probability: {:.2f}s'.format(
+                                num,time_detect))
                 plt.xlabel('Time(s)')
                 plt.ylabel('Probability (%)')
                 plt.legend()
@@ -584,9 +599,9 @@ class Viewer(QMainWindow):
                 plt.show()
                 
                 #save the raw data out
-                fore_sums=detection_probability.f_sums
-                back_sums=detection_probability.b_sums
-                analysis_times=detection_probability.a_times
+                fore_sums=detection_probability.f_sums[s_index::]
+                back_sums=detection_probability.b_sums[s_index::]
+                analysis_times=detection_probability.a_times[s_index::]
                 raw_name,ok3=QFileDialog.getSaveFileName(self,
                                'Raw Data Save File Name',"",
                                'Comma Seperated File (*.csv);;Text File (*.txt)')
@@ -657,6 +672,8 @@ class Viewer(QMainWindow):
             # plt.axvspan(y[int(left_sig[2])],y[int(right_sig[2])],facecolor='g',alpha=0.5)
             plt.show()
             return peaks,e_res
+    def view_probabilities(self):
+        self.view=Plotter()
             
 if __name__=="__main__":
     app=QApplication(sys.argv)
